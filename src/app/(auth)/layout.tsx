@@ -18,8 +18,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                     <CanvasLogin />
                 </div>
             </div>
-            
-            {/* Right side with auth form */}
             <div className="w-full md:w-1/2 flex items-center justify-center p-6">
                 <div className="w-full max-w-md">
                     {/* <div className="mb-8 text-center">
