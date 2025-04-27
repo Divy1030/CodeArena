@@ -62,6 +62,7 @@ export default function AuthForm({ type }: AuthFormProps) {
       if (type === 'login') {
         const loginData = data as LoginFormValues;
         
+        // Use Next.js API routes
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
@@ -74,47 +75,75 @@ export default function AuthForm({ type }: AuthFormProps) {
         });
         
         const result = await response.json();
+        console.log('Login response:', result);
         
-        if (result.success) {
-          // Save token if present
-          if (result.token) {
-            localStorage.setItem('token', result.token);
-          }
-          
-          // Handle remember me
-          if (loginData.rememberMe) {
-            sessionStorage.setItem('userEmail', loginData.email);
-            sessionStorage.setItem('rememberMe', 'true');
+        if (response.ok && result.success) {
+          // The data is nested inside result.data
+          if (result.data && result.data.accessToken) {
+            localStorage.setItem('token', result.data.accessToken);
+            
+            // Also save refresh token if needed
+            if (result.data.refreshToken) {
+              localStorage.setItem('refreshToken', result.data.refreshToken);
+            }
+            
+            // Save user data
+            if (result.data.user) {
+              localStorage.setItem('userData', JSON.stringify(result.data.user));
+            }
+            
+            // console.log('Token received:', result.data.accessToken);
+            // console.log('User data:', result.data.user);
+            
+            // Handle remember me
+            if (loginData.rememberMe) {
+              sessionStorage.setItem('userEmail', loginData.email);
+              sessionStorage.setItem('rememberMe', 'true');
+            } else {
+              sessionStorage.removeItem('userEmail');
+              sessionStorage.removeItem('rememberMe');
+            }
+            
+            // Add a delay before redirection
+            setTimeout(() => {
+              router.push('/user/home');
+            }, 100);
           } else {
-            sessionStorage.removeItem('userEmail');
-            sessionStorage.removeItem('rememberMe');
+            // console.error('No access token in response:', result);
+            setError('Login successful but no authentication token was received');
           }
-          
-          router.push('/dashboard');
         } else {
           setError(result.message || 'Login failed');
         }
       } else {
         const registerData = data as RegisterFormValues;
         
+        // Use Next.js API routes
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ 
-            name: registerData.username,
+            username: registerData.username,
             email: registerData.email,
             password: registerData.password 
           }),
         });
         
         const result = await response.json();
+        console.log('Register response:', result);
         
-        if (result.success) {
+        if (response.ok && result.success) {
           // Save email for the login form
           localStorage.setItem('enteredEmail', registerData.email);
-          router.push('/auth/login');
+          
+          // Show success message
+          setError(null);
+          alert(result.message || 'Registration successful! Please log in.');
+          
+          // Redirect to login page
+          router.push('/login');
         } else {
           setError(result.message || 'Registration failed');
         }
@@ -174,8 +203,6 @@ export default function AuthForm({ type }: AuthFormProps) {
           )}
         </div>
       )}
-      
-      {/* Phone field removed */}
       
       {/* Password - used in both forms */}
       <div>
