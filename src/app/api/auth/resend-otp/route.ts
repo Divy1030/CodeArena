@@ -6,43 +6,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    if (!body.username || !body.email || !body.password) {
+    if (!body.email) {
       return NextResponse.json(
-        { success: false, message: 'Username, email, and password are required' },
+        { success: false, message: 'Email is required' },
         { status: 400 }
       );
     }
 
-    // Call backend API
-    const response = await fetch(endpoints.auth.register, {
+    // We don't have a direct resend OTP endpoint, so we'll use the forgot password endpoint
+    // which will generate a new OTP
+    const response = await fetch(endpoints.auth.forgotPassword, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username: body.username,
-        email: body.email,
-        password: body.password
+        email: body.email
       }),
     });
 
     const data = await response.json();
-    console.log('Backend register response:', data);
+    console.log('Resend OTP response:', data);
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: data.message || "Registration failed" },
+        { success: false, message: data.message || "Failed to resend verification code" },
         { status: response.status }
       );
     }
 
     return NextResponse.json({
-      success: data.success,
-      message: data.message,
-      data: data.data
+      success: true,
+      message: "Verification code resent. Please check your email.",
+      data: null
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Resend OTP error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
