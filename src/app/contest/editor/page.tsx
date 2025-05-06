@@ -53,47 +53,56 @@ const Compiler: React.FC = () => {
 
   // Initial code templates for different languages
   const initialCodeTemplates = {
-    javascript: `function longestValidParentheses(s) {
+    javascript: `function isPalindrome(s) {
   // Write your solution here
+  // Only consider alphanumeric characters and ignore case
   
-  return 0;
-}`,
-    python: `def longestValidParentheses(s):
+  return true;
+}
+
+// Do not modify the code below
+const s = readline();
+console.log(isPalindrome(s));`,
+    python: `def is_palindrome(s):
   # Write your solution here
+  # Only consider alphanumeric characters and ignore case
   
-  return 0
+  return True
 
 # Do not modify the code below
-print(longestValidParentheses(input()))`,
+print(str(is_palindrome(input())).lower())`,
     java: `import java.util.*;
 
 public class Solution {
-  public static int longestValidParentheses(String s) {
+  public static boolean isPalindrome(String s) {
     // Write your solution here
+    // Only consider alphanumeric characters and ignore case
     
-    return 0;
+    return true;
   }
   
   public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
     String s = scanner.nextLine();
-    System.out.println(longestValidParentheses(s));
+    System.out.println(isPalindrome(s));
   }
 }`,
     cpp: `#include <iostream>
 #include <string>
+#include <cctype>
 using namespace std;
 
-int longestValidParentheses(string s) {
+bool isPalindrome(string s) {
   // Write your solution here
+  // Only consider alphanumeric characters and ignore case
   
-  return 0;
+  return true;
 }
 
 int main() {
   string s;
-  cin >> s;
-  cout << longestValidParentheses(s) << endl;
+  getline(cin, s);
+  cout << (isPalindrome(s) ? "true" : "false") << endl;
   return 0;
 }`
   };
@@ -101,23 +110,60 @@ int main() {
   const testCasesData: TestCase[] = [
     {
       id: 1,
-      input: "(()",
-      expectedOutput: "2",
+      input: "A man, a plan, a canal: Panama",
+      expectedOutput: "true",
       status: 'pending'
     },
     {
       id: 2,
-      input: ")()())",
-      expectedOutput: "4",
+      input: "race a car",
+      expectedOutput: "false",
       status: 'pending'
     },
     {
       id: 3,
-      input: "(()())",
-      expectedOutput: "6",
+      input: "No lemon, no melon",
+      expectedOutput: "true",
+      status: 'pending'
+    },
+    {
+      id: 4,
+      input: " ",
+      expectedOutput: "true",
       status: 'pending'
     }
   ];
+
+  // Update the problem data
+  const [problemData, setProblemData] = useState<any>({
+    title: "Valid Palindrome",
+    difficulty: "Easy",
+    timeEstimate: "15 mins",
+    points: 100,
+    description: "Check if a string is a valid palindrome, considering only alphanumeric characters and ignoring cases.",
+    examples: [
+      {
+        input: "A man, a plan, a canal: Panama",
+        output: "true",
+        explanation: "After removing non-alphanumeric characters and converting to lowercase, the string becomes 'amanaplanacanalpanama', which is a palindrome."
+      },
+      {
+        input: "race a car",
+        output: "false",
+        explanation: "After processing, the string becomes 'raceacar', which is not a palindrome."
+      },
+      {
+        input: "No lemon, no melon",
+        output: "true",
+        explanation: "After processing, it becomes 'nolemonnomelom', which is a palindrome."
+      }
+    ],
+    constraints: [
+      "1 ≤ s.length ≤ 2 * 10^5",
+      "The string consists only of printable ASCII characters."
+    ],
+    followUp: "Could you solve it without allocating extra space?"
+  });
 
   const [testCases, setTestCases] = useState<TestCase[]>(testCasesData);
   const [selectedTestCase, setSelectedTestCase] = useState<TestCase>(testCasesData[0]);
@@ -135,35 +181,6 @@ int main() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
   const [executionError, setExecutionError] = useState<string | null>(null);
-  const [problemData, setProblemData] = useState<any>({
-    title: "Longest Valid Parentheses",
-    difficulty: "Hard",
-    timeEstimate: "30 mins",
-    points: 300,
-    description: "Given a string containing just the characters '(' and ')', find the length of the longest valid (well-formed) parentheses substring.",
-    examples: [
-      {
-        input: "(()",
-        output: "2",
-        explanation: "The longest valid parentheses substring is '()'."
-      },
-      {
-        input: ")()())",
-        output: "4",
-        explanation: "The longest valid parentheses substring is '()()'."
-      },
-      {
-        input: "(()())",
-        output: "6",
-        explanation: "The entire string is a valid parentheses substring."
-      }
-    ],
-    constraints: [
-      "0 ≤ s.length ≤ 3 * 10^4",
-      "s[i] is '(', or ')'."
-    ],
-    followUp: "Can you come up with an algorithm with O(n) time complexity?"
-  });
 
   // Initialize window size state after component mounts to avoid SSR issues
   useEffect(() => {
@@ -237,7 +254,9 @@ int main() {
         
         // Update test cases with results
         const updatedTestCases = testCases.map((tc, index) => {
+          // Find the matching result by index
           const resultData = result.data.results[index];
+          
           return {
             ...tc,
             status: resultData.passed ? 'passed' : 'failed',

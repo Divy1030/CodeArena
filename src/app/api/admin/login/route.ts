@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
-import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +13,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the endpoint from api.ts
-    const response = await fetch(endpoints.auth.login, {
+    // Call backend API
+    const response = await fetch(endpoints.admin.login, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,7 +26,7 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
-    console.log('Backend login response:', data);
+    console.log('Backend admin login response:', data);
 
     // Extract cookies from the response
     const cookieHeader = response.headers.get('set-cookie');
@@ -43,8 +42,6 @@ export async function POST(request: NextRequest) {
       const refreshToken = refreshTokenMatch ? refreshTokenMatch[1] : null;
       
       if (accessToken && refreshToken) {
-        console.log('Extracted tokens from cookies');
-        
         // Add tokens to the response data
         if (!data.data) data.data = {};
         data.data.accessToken = accessToken;
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: data.message || "Login failed" },
+        { success: false, message: data.message || "Admin login failed" },
         { status: response.status }
       );
     }
@@ -68,13 +65,11 @@ export async function POST(request: NextRequest) {
 
     // Forward the cookies from the backend to the client
     if (cookieHeader) {
-      // Parse and set individual cookies
       cookieHeader.split(',').forEach(cookie => {
         const [cookiePart] = cookie.split(';');
         if (cookiePart) {
           const [name, value] = cookiePart.split('=');
           if (name && value) {
-            // Add each cookie to the response
             nextResponse.cookies.set(name.trim(), value.trim());
           }
         }
@@ -83,9 +78,9 @@ export async function POST(request: NextRequest) {
 
     return nextResponse;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Admin login error:', error);
     return NextResponse.json(
-      { success: false, message: "Internal server error" },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }

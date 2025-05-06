@@ -5,33 +5,44 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validate required fields
-    if (!body.username || !body.email || !body.password) {
+    // Get token from cookies or authorization header
+    const token = request.cookies.get('accessToken')?.value ||
+                 request.headers.get('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
       return NextResponse.json(
-        { success: false, message: 'Username, email, and password are required' },
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Validate required fields
+    if (!body.oldPassword || !body.newPassword) {
+      return NextResponse.json(
+        { success: false, message: 'Old password and new password are required' },
         { status: 400 }
       );
     }
 
     // Call backend API
-    const response = await fetch(endpoints.auth.register, {
+    const response = await fetch(endpoints.user.changePassword, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        username: body.username,
-        email: body.email,
-        password: body.password
+        oldPassword: body.oldPassword,
+        newPassword: body.newPassword
       }),
     });
 
     const data = await response.json();
-    console.log('Backend register response:', data);
+    console.log('Backend change password response:', data);
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: data.message || "Registration failed" },
+        { success: false, message: data.message || "Failed to change password" },
         { status: response.status }
       );
     }
@@ -42,7 +53,7 @@ export async function POST(request: NextRequest) {
       data: data.data
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Change password error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
