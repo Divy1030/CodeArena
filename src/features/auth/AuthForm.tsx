@@ -8,6 +8,9 @@ import { LoginFormSchema, RegisterFormSchema } from "@/libs/schema/authSchema";
 import { AuthFormType } from "./types/auth.types";
 import Link from "next/link";
 import { z } from "zod";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+
 
 interface AuthFormProps {
   type: AuthFormType;
@@ -24,11 +27,11 @@ export default function AuthForm({ type }: AuthFormProps) {
 
   // Choose the correct schema based on form type
   const schema = type === 'login' ? LoginFormSchema : RegisterFormSchema;
-  
+
   // Setup form with React Hook Form
   const form = useForm<LoginFormValues | RegisterFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: type === 'login' 
+    defaultValues: type === 'login'
       ? { email: '', password: '', rememberMe: false } as LoginFormValues
       : { username: '', email: '', password: '', terms: false } as RegisterFormValues,
     mode: "onChange"
@@ -41,7 +44,7 @@ export default function AuthForm({ type }: AuthFormProps) {
       form.setValue("email", savedEmail);
       localStorage.removeItem("enteredEmail");
     }
-    
+
     // For login form, check if we have a remembered email
     if (type === "login") {
       const rememberedEmail = sessionStorage.getItem("userEmail");
@@ -61,40 +64,40 @@ export default function AuthForm({ type }: AuthFormProps) {
     try {
       if (type === 'login') {
         const loginData = data as LoginFormValues;
-        
+
         // Use Next.js API routes
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
-            email: loginData.email, 
-            password: loginData.password 
+          body: JSON.stringify({
+            email: loginData.email,
+            password: loginData.password
           }),
         });
-        
+
         const result = await response.json();
         console.log('Login response:', result);
-        
+
         if (response.ok && result.success) {
           // The data is nested inside result.data
           if (result.data && result.data.accessToken) {
             localStorage.setItem('token', result.data.accessToken);
-            
+
             // Also save refresh token if needed
             if (result.data.refreshToken) {
               localStorage.setItem('refreshToken', result.data.refreshToken);
             }
-            
+
             // Save user data
             if (result.data.user) {
               localStorage.setItem('userData', JSON.stringify(result.data.user));
             }
-            
+
             // console.log('Token received:', result.data.accessToken);
             // console.log('User data:', result.data.user);
-            
+
             // Handle remember me
             if (loginData.rememberMe) {
               sessionStorage.setItem('userEmail', loginData.email);
@@ -103,7 +106,7 @@ export default function AuthForm({ type }: AuthFormProps) {
               sessionStorage.removeItem('userEmail');
               sessionStorage.removeItem('rememberMe');
             }
-            
+
             // Add a delay before redirection
             setTimeout(() => {
               router.push('/user/home');
@@ -117,31 +120,31 @@ export default function AuthForm({ type }: AuthFormProps) {
         }
       } else {
         const registerData = data as RegisterFormValues;
-        
+
         // Use Next.js API routes
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             username: registerData.username,
             email: registerData.email,
-            password: registerData.password 
+            password: registerData.password
           }),
         });
-        
+
         const result = await response.json();
         console.log('Register response:', result);
-        
+
         if (response.ok && result.success) {
           // Save email for the login form
           localStorage.setItem('enteredEmail', registerData.email);
-          
+
           // Show success message
           setError(null);
           alert(result.message || 'Registration successful! Please log in.');
-          
+
           // Redirect to login page
           router.push('/login');
         } else {
@@ -155,7 +158,37 @@ export default function AuthForm({ type }: AuthFormProps) {
       setIsSubmitting(false);
     }
   };
-  
+
+  const handleLogin = async (credentialResponse: any) => {
+    const idToken = credentialResponse.credential;
+
+    try {
+      const res = await axios.post("/api/auth/google", {
+        idToken,
+      });
+
+      console.log("Logged in:", res.data);
+
+      if (res.data.success) {
+        const { user, accessToken, refreshToken } = res.data.data;
+
+        // Set tokens in cookies
+        document.cookie = `token=${accessToken}; path=/; secure; HttpOnly`;
+        if (refreshToken) {
+          document.cookie = `refreshToken=${refreshToken}; path=/; secure; HttpOnly`;
+        }
+
+        localStorage.setItem("userData", JSON.stringify(user));
+        router.push("/user/home");
+      } else {
+        setError(res.data.message || "Login failed");
+      }
+    } catch (error: any) {
+      console.error("Login error", error.response?.data || error.message);
+      setError("Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
       {error && (
@@ -163,7 +196,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           {error}
         </div>
       )}
-      
+
       {/* Email field - used in both forms */}
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="email">
@@ -182,7 +215,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           </p>
         )}
       </div>
-      
+
       {/* Username - only for register */}
       {type === 'register' && (
         <div>
@@ -203,7 +236,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           )}
         </div>
       )}
-      
+
       {/* Password - used in both forms */}
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="password">
@@ -222,7 +255,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           </p>
         )}
       </div>
-      
+
       {/* Login-specific elements */}
       {type === 'login' && (
         <div className="flex justify-between items-center">
@@ -245,7 +278,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           </div>
         </div>
       )}
-      
+
       {/* Terms checkbox - only for register */}
       {type === 'register' && (
         <div className="flex items-center">
@@ -265,7 +298,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           )}
         </div>
       )}
-      
+
       {/* Submit button */}
       <button
         type="submit"
@@ -276,6 +309,16 @@ export default function AuthForm({ type }: AuthFormProps) {
           ? type === 'login' ? 'Logging in...' : 'Signing up...'
           : type === 'login' ? 'Login' : 'Sign up'}
       </button>
+
+      <GoogleLogin
+        onSuccess={handleLogin}
+        onError={() => console.log("Login Failed")}
+        theme="outline" // or "filled_blue", "filled_black"
+        size="large" // or "medium", "small"
+        shape="rectangular" // or "rectangular", "circle"
+        text="continue_with" // or "signup_with", "continue_with"
+      />
+
     </form>
   );
 }
