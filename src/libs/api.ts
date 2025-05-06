@@ -7,6 +7,9 @@ console.log('Using API base URL:', API_BASE_URL);
 const endpoints = {
   auth: {
     register: `${API_BASE_URL}/api/v1/auth/register`,
+
+    googleLogin: `${API_BASE_URL}/api/v1/auth/google`,
+
     login: `${API_BASE_URL}/api/v1/auth/login`,
     logout: `${API_BASE_URL}/api/v1/auth/logout`,
     verifyOtp: `${API_BASE_URL}/api/v1/auth/v`,
@@ -27,6 +30,7 @@ const endpoints = {
   },
   user: {
     profile: `${API_BASE_URL}/api/v1/user/profile`,
+
   },
   // Add other endpoints as needed
 };
