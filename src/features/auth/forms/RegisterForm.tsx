@@ -31,13 +31,6 @@ export default function RegisterForm({
         placeholder="Choose a username"
         type="text"
       />
-      <CustomInput
-        name="phone"
-        label="Phone Number"
-        control={control}
-        placeholder="Enter your phone number"
-        type="tel"
-      />
       <div className="relative">
         <CustomInput
           name="password"
@@ -66,6 +59,17 @@ export default function RegisterForm({
           >
             Privacy Policy
           </Link>
+        </p>
+      </div>
+      
+      {/* Admin checkbox */}
+      <div className="flex items-start sm:items-center gap-2">
+        <CustomCheckbox name="isAdmin" label="" control={control} />
+        <p className="text-sm">
+          Register as an Admin
+          <span className="text-xs text-gray-500 block">
+            (Admin accounts have additional privileges to manage contests and users)
+          </span>
         </p>
       </div>
 
