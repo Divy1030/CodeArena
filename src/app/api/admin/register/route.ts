@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call backend API
-    const response = await fetch(endpoints.auth.register, {
+    const response = await fetch(endpoints.admin.register, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,22 +27,22 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
-    console.log('Backend register response:', data);
+    console.log('Admin register response:', data);
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: data.message || "Registration failed" },
+        { success: false, message: data.message || "Admin registration failed" },
         { status: response.status }
       );
     }
 
     return NextResponse.json({
       success: data.success,
-      message: data.message,
+      message: data.message || "Admin registered successfully! Please check your email for verification.",
       data: data.data
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Admin registration error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }

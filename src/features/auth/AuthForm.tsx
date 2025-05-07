@@ -4,26 +4,26 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { LoginFormSchema, RegisterFormSchema } from "@/libs/schema/authSchema";
+import { CombinedAuthFormSchema } from "@/libs/schema/authSchema";
 import { AuthFormType } from "./types/auth.types";
+import { CombinedFormValues } from "./types/form.types"; // Import the CombinedFormValues type
 import Link from "next/link";
 import { z } from "zod";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-
+import CustomInput from "@/components/Custom/CustomInput";
 
 interface AuthFormProps {
   type: AuthFormType;
 }
 
-// Define form data types based on schemas
-type LoginFormValues = z.infer<typeof LoginFormSchema>;
-type RegisterFormValues = z.infer<typeof RegisterFormSchema>;
+// No need to define CombinedFormValues here anymore since we're importing it
 
 export default function AuthForm({ type }: AuthFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
 
   // Choose the correct schema based on form type
   const schema = type === 'login' ? LoginFormSchema : RegisterFormSchema;
@@ -34,14 +34,30 @@ export default function AuthForm({ type }: AuthFormProps) {
     defaultValues: type === 'login'
       ? { email: '', password: '', rememberMe: false } as LoginFormValues
       : { username: '', email: '', password: '', terms: false } as RegisterFormValues,
+  // Use the combined schema for both login and register
+  const form = useForm<CombinedFormValues>({
+    resolver: zodResolver(CombinedAuthFormSchema),
+    defaultValues: {
+      // Common fields
+      email: '',
+      password: '',
+      // Login-specific fields
+      rememberMe: false,
+      // Register-specific fields
+      username: '',
+      terms: false,
+      isAdmin: false
+    },
     mode: "onChange"
   });
+
+  const { register, handleSubmit, setValue, control, formState: { errors } } = form;
 
   // Load saved email if available
   useEffect(() => {
     const savedEmail = localStorage.getItem("enteredEmail");
     if (savedEmail) {
-      form.setValue("email", savedEmail);
+      setValue("email", savedEmail);
       localStorage.removeItem("enteredEmail");
     }
 
@@ -51,20 +67,28 @@ export default function AuthForm({ type }: AuthFormProps) {
       const rememberMe = sessionStorage.getItem("rememberMe");
 
       if (rememberedEmail && rememberMe) {
-        form.setValue("email", rememberedEmail);
-        form.setValue("rememberMe", true);
+        setValue("email", rememberedEmail);
+        setValue("rememberMe", true);
       }
     }
-  }, [type, form]);
+  }, [type, setValue]);
 
-  const onSubmit = async (data: LoginFormValues | RegisterFormValues) => {
+  const onSubmit = async (data: CombinedFormValues) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
       if (type === 'login') {
+
         const loginData = data as LoginFormValues;
 
+
+        // Extract only the login-relevant fields
+        const loginData = {
+          email: data.email,
+          password: data.password,
+          rememberMe: data.rememberMe
+        };
         // Use Next.js API routes
         const response = await fetch('/api/auth/login', {
           method: 'POST',
@@ -93,6 +117,7 @@ export default function AuthForm({ type }: AuthFormProps) {
             // Save user data
             if (result.data.user) {
               localStorage.setItem('userData', JSON.stringify(result.data.user));
+
             }
 
             // console.log('Token received:', result.data.accessToken);
@@ -102,27 +127,62 @@ export default function AuthForm({ type }: AuthFormProps) {
             if (loginData.rememberMe) {
               sessionStorage.setItem('userEmail', loginData.email);
               sessionStorage.setItem('rememberMe', 'true');
-            } else {
-              sessionStorage.removeItem('userEmail');
-              sessionStorage.removeItem('rememberMe');
-            }
+              
+              // Check if the user is an admin
+              const isAdmin = result.data.user.role === 'admin';
+              localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
+              
+              // Redirect based on user role
+              const redirectPath = isAdmin ? '/admin/home' : '/user/home';
+              
+              // Handle remember me
+              if (loginData.rememberMe) {
+                sessionStorage.setItem('userEmail', loginData.email);
+                sessionStorage.setItem('rememberMe', 'true');
+              } else {
+                sessionStorage.removeItem('userEmail');
+                sessionStorage.removeItem('rememberMe');
+              }
+              
+              // Add a delay before redirection
+              setTimeout(() => {
+                router.push(redirectPath);
+              }, 100);
 
+            } else {
+              setError('Login successful but user data was not received');
+            }
             // Add a delay before redirection
             setTimeout(() => {
               router.push('/user/home');
             }, 100);
+
           } else {
-            // console.error('No access token in response:', result);
             setError('Login successful but no authentication token was received');
           }
         } else {
           setError(result.message || 'Login failed');
         }
       } else {
+
         const registerData = data as RegisterFormValues;
 
+
+        // Extract only the register-relevant fields
+        const registerData = {
+          username: data.username || '',
+          email: data.email,
+          password: data.password,
+          isAdmin: data.isAdmin || false
+        };
+        
+        // Determine which endpoint to use based on isAdmin
+        const endpointUrl = registerData.isAdmin 
+          ? '/api/admin/register' 
+          : '/api/auth/register';
+
         // Use Next.js API routes
-        const response = await fetch('/api/auth/register', {
+        const response = await fetch(endpointUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -143,10 +203,18 @@ export default function AuthForm({ type }: AuthFormProps) {
 
           // Show success message
           setError(null);
+
           alert(result.message || 'Registration successful! Please log in.');
+          
+          // Define message based on account type
+          const accountType = registerData.isAdmin ? 'admin' : 'user';
+          const successMessage = result.message || 
+            `Registration successful! Please check your email for verification. You've registered as an ${accountType}.`;
+          
+          alert(successMessage);
 
           // Redirect to login page
-          router.push('/login');
+          router.push('/auth/login');
         } else {
           setError(result.message || 'Registration failed');
         }
@@ -190,7 +258,7 @@ export default function AuthForm({ type }: AuthFormProps) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full">
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
@@ -205,13 +273,13 @@ export default function AuthForm({ type }: AuthFormProps) {
         <input
           id="email"
           type="email"
-          {...form.register('email')}
+          {...register('email')}
           className="w-full p-2 border rounded-md"
           placeholder="Enter your email"
         />
-        {form.formState.errors.email && (
+        {errors.email && (
           <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.email.message?.toString()}
+            {errors.email.message?.toString()}
           </p>
         )}
       </div>
@@ -225,13 +293,13 @@ export default function AuthForm({ type }: AuthFormProps) {
           <input
             id="username"
             type="text"
-            {...form.register('username')}
+            {...register('username')}
             className="w-full p-2 border rounded-md"
             placeholder="Choose a username"
           />
-          {type === 'register' && (form.formState.errors as any).username && (
+          {errors.username && (
             <p className="text-red-500 text-sm mt-1">
-              {(form.formState.errors as any).username.message?.toString()}
+              {errors.username.message?.toString()}
             </p>
           )}
         </div>
@@ -242,16 +310,27 @@ export default function AuthForm({ type }: AuthFormProps) {
         <label className="block text-sm font-medium mb-1" htmlFor="password">
           Password
         </label>
-        <input
-          id="password"
-          type="password"
-          {...form.register('password')}
-          className="w-full p-2 border rounded-md"
-          placeholder={type === 'login' ? "Enter your password" : "Create a password"}
-        />
-        {form.formState.errors.password && (
+        {type === 'register' ? (
+          <CustomInput<CombinedFormValues>
+            name="password"
+            label=""
+            control={control}
+            placeholder="Create a password"
+            type="password"
+            showStrengthChecker={true}
+          />
+        ) : (
+          <input
+            id="password"
+            type="password"
+            {...register('password')}
+            className="w-full p-2 border rounded-md"
+            placeholder="Enter your password"
+          />
+        )}
+        {errors.password && !type.includes('register') && (
           <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.password.message?.toString()}
+            {errors.password.message?.toString()}
           </p>
         )}
       </div>
@@ -260,7 +339,7 @@ export default function AuthForm({ type }: AuthFormProps) {
       {type === 'login' && (
         <div className="flex justify-between items-center">
           <Link
-            href="/auth/forgot-password"
+            href="/forgot-password"
             className="text-sm text-blue-600 hover:underline"
           >
             Forgot Password?
@@ -269,7 +348,7 @@ export default function AuthForm({ type }: AuthFormProps) {
             <input
               id="rememberMe"
               type="checkbox"
-              {...form.register('rememberMe')}
+              {...register('rememberMe')}
               className="h-4 w-4 rounded"
             />
             <label htmlFor="rememberMe" className="text-sm">
@@ -285,20 +364,38 @@ export default function AuthForm({ type }: AuthFormProps) {
           <input
             id="terms"
             type="checkbox"
-            {...form.register('terms')}
+            {...register('terms')}
             className="h-4 w-4 rounded"
           />
           <label htmlFor="terms" className="ml-2 text-sm">
             I agree to the Terms of Service and Privacy Policy
           </label>
-          {(form.formState.errors as any).terms && (
+          {errors.terms && (
             <p className="text-red-500 text-sm ml-2">
-              {(form.formState.errors as any).terms.message?.toString()}
+              {errors.terms.message?.toString()}
             </p>
           )}
         </div>
       )}
 
+      {/* Admin checkbox - only for register */}
+      {type === 'register' && (
+        <div className="flex items-center">
+          <input
+            id="isAdmin"
+            type="checkbox"
+            {...register('isAdmin')}
+            className="h-4 w-4 rounded"
+          />
+          <label htmlFor="isAdmin" className="ml-2 text-sm">
+            Register as an admin
+          </label>
+          <span className="ml-2 text-xs text-gray-500">
+            (Admin accounts have additional privileges)
+          </span>
+        </div>
+      )}
+      
       {/* Submit button */}
       <button
         type="submit"

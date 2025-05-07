@@ -7,6 +7,7 @@ interface Question {
   id: number;
   title: string;
   type: string;
+  description?: string;
 }
 
 const ContestProblemPage: React.FC = () => {
@@ -36,10 +37,27 @@ const ContestProblemPage: React.FC = () => {
         description: 'Complete all questions within the given time to earn points and improve your ranking.',
         timeRemaining: '01:45:30', // HH:MM:SS
         questions: [
-          { id: 1, title: 'Break A Palindrome', type: 'Code' },
-          { id: 2, title: 'Country Populations', type: 'Approximate Solution' },
-          { id: 3, title: 'Good URI Design', type: 'Multiple Choice' },
-          { id: 4, title: 'REST Server Response', type: 'Multiple Choice' }
+          { 
+            id: 1, 
+            title: 'Valid Palindrome', 
+            type: 'Code',
+            description: 'Check if a string is a valid palindrome, considering only alphanumeric characters and ignoring cases.'
+          },
+          { 
+            id: 2, 
+            title: 'Country Populations', 
+            type: 'Approximate Solution' 
+          },
+          { 
+            id: 3, 
+            title: 'Good URI Design', 
+            type: 'Multiple Choice' 
+          },
+          { 
+            id: 4, 
+            title: 'REST Server Response', 
+            type: 'Multiple Choice' 
+          }
         ]
       };
       
@@ -51,7 +69,12 @@ const ContestProblemPage: React.FC = () => {
   }, [contestId]);
 
   const questions: Question[] = contestData?.questions || [
-    { id: 1, title: 'Break A Palindrome', type: 'Code' },
+    { 
+      id: 1, 
+      title: 'Valid Palindrome', 
+      type: 'Code',
+      description: 'Check if a string is a valid palindrome, considering only alphanumeric characters and ignoring cases.' 
+    },
     { id: 2, title: 'Country Populations', type: 'Approximate Solution' },
     { id: 3, title: 'Good URI Design', type: 'Multiple Choice' },
     { id: 4, title: 'REST Server Response', type: 'Multiple Choice' }
