@@ -313,10 +313,10 @@ export default function AuthForm({ type }: AuthFormProps) {
       <GoogleLogin
         onSuccess={handleLogin}
         onError={() => console.log("Login Failed")}
-        theme="outline" // or "filled_blue", "filled_black"
-        size="large" // or "medium", "small"
-        shape="rectangular" // or "rectangular", "circle"
-        text="continue_with" // or "signup_with", "continue_with"
+        theme="outline"
+        size="large"
+        shape="rectangular"
+        text="continue_with"
       />
 
     </form>
