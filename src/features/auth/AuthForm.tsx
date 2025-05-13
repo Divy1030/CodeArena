@@ -6,9 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { CombinedAuthFormSchema } from "@/libs/schema/authSchema";
 import { AuthFormType } from "./types/auth.types";
-import { CombinedFormValues } from "./types/form.types"; // Import the CombinedFormValues type
+import { CombinedFormValues } from "./types/form.types";
 import Link from "next/link";
-import { z } from "zod";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import CustomInput from "@/components/Custom/CustomInput";
@@ -16,24 +15,12 @@ import CustomInput from "@/components/Custom/CustomInput";
 interface AuthFormProps {
   type: AuthFormType;
 }
-
-// No need to define CombinedFormValues here anymore since we're importing it
-
+ 
 export default function AuthForm({ type }: AuthFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-
-  // Choose the correct schema based on form type
-  const schema = type === 'login' ? LoginFormSchema : RegisterFormSchema;
-
-  // Setup form with React Hook Form
-  const form = useForm<LoginFormValues | RegisterFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: type === 'login'
-      ? { email: '', password: '', rememberMe: false } as LoginFormValues
-      : { username: '', email: '', password: '', terms: false } as RegisterFormValues,
   // Use the combined schema for both login and register
   const form = useForm<CombinedFormValues>({
     resolver: zodResolver(CombinedAuthFormSchema),
@@ -79,16 +66,13 @@ export default function AuthForm({ type }: AuthFormProps) {
 
     try {
       if (type === 'login') {
-
-        const loginData = data as LoginFormValues;
-
-
         // Extract only the login-relevant fields
         const loginData = {
           email: data.email,
           password: data.password,
           rememberMe: data.rememberMe
         };
+        
         // Use Next.js API routes
         const response = await fetch('/api/auth/login', {
           method: 'POST',
@@ -105,8 +89,8 @@ export default function AuthForm({ type }: AuthFormProps) {
         console.log('Login response:', result);
 
         if (response.ok && result.success) {
-          // The data is nested inside result.data
           if (result.data && result.data.accessToken) {
+            // Store token in localStorage with proper formatting
             localStorage.setItem('token', result.data.accessToken);
 
             // Also save refresh token if needed
@@ -117,16 +101,6 @@ export default function AuthForm({ type }: AuthFormProps) {
             // Save user data
             if (result.data.user) {
               localStorage.setItem('userData', JSON.stringify(result.data.user));
-
-            }
-
-            // console.log('Token received:', result.data.accessToken);
-            // console.log('User data:', result.data.user);
-
-            // Handle remember me
-            if (loginData.rememberMe) {
-              sessionStorage.setItem('userEmail', loginData.email);
-              sessionStorage.setItem('rememberMe', 'true');
               
               // Check if the user is an admin
               const isAdmin = result.data.user.role === 'admin';
@@ -139,24 +113,13 @@ export default function AuthForm({ type }: AuthFormProps) {
               if (loginData.rememberMe) {
                 sessionStorage.setItem('userEmail', loginData.email);
                 sessionStorage.setItem('rememberMe', 'true');
-              } else {
-                sessionStorage.removeItem('userEmail');
-                sessionStorage.removeItem('rememberMe');
               }
               
               // Add a delay before redirection
               setTimeout(() => {
                 router.push(redirectPath);
               }, 100);
-
-            } else {
-              setError('Login successful but user data was not received');
             }
-            // Add a delay before redirection
-            setTimeout(() => {
-              router.push('/user/home');
-            }, 100);
-
           } else {
             setError('Login successful but no authentication token was received');
           }
@@ -164,10 +127,6 @@ export default function AuthForm({ type }: AuthFormProps) {
           setError(result.message || 'Login failed');
         }
       } else {
-
-        const registerData = data as RegisterFormValues;
-
-
         // Extract only the register-relevant fields
         const registerData = {
           username: data.username || '',
@@ -203,8 +162,6 @@ export default function AuthForm({ type }: AuthFormProps) {
 
           // Show success message
           setError(null);
-
-          alert(result.message || 'Registration successful! Please log in.');
           
           // Define message based on account type
           const accountType = registerData.isAdmin ? 'admin' : 'user';
@@ -240,14 +197,26 @@ export default function AuthForm({ type }: AuthFormProps) {
       if (res.data.success) {
         const { user, accessToken, refreshToken } = res.data.data;
 
-        // Set tokens in cookies
-        document.cookie = `token=${accessToken}; path=/; secure; HttpOnly`;
+        // Store token in localStorage to be consistent with regular login
+        localStorage.setItem('token', accessToken);
         if (refreshToken) {
-          document.cookie = `refreshToken=${refreshToken}; path=/; secure; HttpOnly`;
+          localStorage.setItem('refreshToken', refreshToken);
         }
 
+        // Save user data
         localStorage.setItem("userData", JSON.stringify(user));
-        router.push("/user/home");
+        
+        // Check if the user is an admin (consistent with normal login)
+        const isAdmin = user.role === 'admin';
+        localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
+        
+        // Determine redirect path
+        const redirectPath = isAdmin ? '/admin/home' : '/user/home';
+        
+        // Add a delay before redirection, just like in normal login
+        setTimeout(() => {
+          router.push(redirectPath);
+        }, 100);
       } else {
         setError(res.data.message || "Login failed");
       }
@@ -415,7 +384,6 @@ export default function AuthForm({ type }: AuthFormProps) {
         shape="rectangular" // or "rectangular", "circle"
         text="continue_with" // or "signup_with", "continue_with"
       />
-
     </form>
   );
 }

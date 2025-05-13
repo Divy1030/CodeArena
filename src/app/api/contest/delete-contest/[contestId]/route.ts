@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 import "server-only";
 
-export async function POST(
+export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ contestId: string }> }
 ) {
@@ -29,10 +29,9 @@ export async function POST(
     }
 
     // Call backend API
-    const response = await fetch(`${endpoints.contest.joinContest}/${contestId}`, {
-      method: 'POST',
+    const response = await fetch(`${endpoints.contest.deleteContest}/${contestId}`, {
+      method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
       cache: "no-store",
@@ -54,13 +53,12 @@ export async function POST(
     }
 
     const data = await response.json();
-    console.log("Join contest response:", data);
-
+    
     if (!response.ok) {
       return NextResponse.json(
         { 
           success: false, 
-          message: data.message || 'Failed to join contest',
+          message: data.message || 'Failed to delete contest',
           details: data
         },
         { status: response.status }
@@ -69,11 +67,10 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully joined the contest',
-      data: data.data
+      message: 'Contest deleted successfully'
     });
   } catch (error) {
-    console.error('Error joining contest:', error);
+    console.error('Error deleting contest:', error);
     return NextResponse.json(
       { 
         success: false, 

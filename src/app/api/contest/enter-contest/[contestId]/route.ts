@@ -29,7 +29,7 @@ export async function POST(
     }
 
     // Call backend API
-    const response = await fetch(`${endpoints.contest.joinContest}/${contestId}`, {
+    const response = await fetch(`${endpoints.contest.enterContest}/${contestId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -54,13 +54,13 @@ export async function POST(
     }
 
     const data = await response.json();
-    console.log("Join contest response:", data);
+    console.log("Enter contest response:", data);
 
     if (!response.ok) {
       return NextResponse.json(
         { 
           success: false, 
-          message: data.message || 'Failed to join contest',
+          message: data.message || 'Failed to enter contest',
           details: data
         },
         { status: response.status }
@@ -69,11 +69,11 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully joined the contest',
+      message: 'Successfully entered the contest',
       data: data.data
     });
   } catch (error) {
-    console.error('Error joining contest:', error);
+    console.error('Error entering contest:', error);
     return NextResponse.json(
       { 
         success: false, 

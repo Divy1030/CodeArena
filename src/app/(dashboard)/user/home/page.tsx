@@ -55,10 +55,24 @@ const UserHome: React.FC = () => {
   useEffect(() => {
     const fetchContests = async () => {
       try {
-        const response = await fetch('/api/contest/getAllContests');
+        // Get the token from localStorage
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          setError('Authentication token not found. Please log in again.');
+          setLoading(false);
+          return;
+        }
+    
+        const response = await fetch('/api/contest/getAllContests', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch contests');
+          throw new Error(`Error: ${response.status}`);
         }
         
         const data = await response.json();
