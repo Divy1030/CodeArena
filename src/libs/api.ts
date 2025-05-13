@@ -30,6 +30,7 @@ const endpoints = {
     startContest: `${API_BASE_URL}/api/v1/contest/start-contest`,
     getContestById: `${API_BASE_URL}/api/v1/contest/getContestById`,
     deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
+    addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
   },
   user: {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
