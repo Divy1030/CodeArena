@@ -4,20 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileActivity from '@/components/profile/ProfileActivity';
+import AdminProfileHeader from '@/components/admin/AdminProfileHeader';
+import AdminStats from '@/components/admin/AdminStats';
+import AdminContests from '@/components/admin/AdminContests';
 import SecuritySettings from '@/components/profile/SecuritySettings';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-const UserProfilePage = () => {
-  const [userData, setUserData] = useState<any>(null);
+const AdminProfilePage = () => {
+  const [adminData, setAdminData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
   
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchAdminData = async () => {
       try {
         // Get token from localStorage (for Google login users)
         const token = localStorage.getItem('token');
@@ -30,7 +30,7 @@ const UserProfilePage = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await fetch('/api/user/profile', {
+        const response = await fetch('/api/admin/get-admin', {
           method: 'GET',
           headers
         });
@@ -38,34 +38,34 @@ const UserProfilePage = () => {
         const result = await response.json();
         
         if (result.success) {
-          setUserData(result.data);
+          setAdminData(result.data);
         } else {
-          setError(result.message || 'Failed to fetch user data');
-          toast.error(result.message || 'Failed to fetch user data');
+          setError(result.message || 'Failed to fetch admin data');
+          toast.error(result.message || 'Failed to fetch admin data');
           
           // If unauthorized, redirect to login
           if (response.status === 401) {
             toast.error('Session expired. Please login again.');
             setTimeout(() => {
-              router.push('/login');
+              router.push('/admin/login');
             }, 2000);
           }
         }
       } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError('An error occurred while fetching user data');
+        console.error('Error fetching admin data:', err);
+        setError('An error occurred while fetching admin data');
         toast.error('Failed to load profile. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     
-    fetchUserData();
+    fetchAdminData();
   }, [router]);
 
   const handlePasswordChange = async (oldPassword: string, newPassword: string) => {
     try {
-      // Get token from localStorage (for Google login users)
+      // Get token from localStorage
       const token = localStorage.getItem('token');
       
       const headers: HeadersInit = {
@@ -125,7 +125,7 @@ const UserProfilePage = () => {
         localStorage.removeItem('isAdmin');
         
         toast.success('Logged out successfully');
-        router.push('/login');
+        router.push('/admin/login');
       } else {
         // Even if backend logout fails, clear local storage
         localStorage.removeItem('token');
@@ -133,8 +133,8 @@ const UserProfilePage = () => {
         localStorage.removeItem('userData');
         localStorage.removeItem('isAdmin');
         
-        // toast.warning('Local session ended. Server logout failed.');
-        router.push('/login');
+        toast.error('Local session ended. Server logout failed.');
+        router.push('/admin/login');
       }
     } catch (err) {
       console.error('Error logging out:', err);
@@ -145,13 +145,13 @@ const UserProfilePage = () => {
       localStorage.removeItem('userData');
       localStorage.removeItem('isAdmin');
       
-      // toast.warning('Local session ended. Server logout failed.');
-      router.push('/login');
+      toast.error('Local session ended. Server logout failed.');
+      router.push('/admin/login');
     }
   };
 
   // Add special handling for Google login users
-  const isGoogleUser = userData && !userData.password;
+  const isGoogleUser = adminData && !adminData.password;
 
   return (
     <ProtectedRoute>
@@ -171,16 +171,16 @@ const UserProfilePage = () => {
                 Try Again
               </button>
             </div>
-          ) : userData ? (
+          ) : adminData ? (
             <div className="space-y-8">
-              <ProfileHeader 
-                user={userData} 
+              <AdminProfileHeader 
+                admin={adminData} 
                 onLogout={handleLogout}
               />
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                  <ProfileStats user={userData} />
-                  <ProfileActivity user={userData} />
+                  <AdminStats admin={adminData} />
+                  <AdminContests contests={adminData.contestsCreated || []} />
                 </div>
                 <div className="lg:col-span-1">
                   {isGoogleUser ? (
@@ -198,7 +198,7 @@ const UserProfilePage = () => {
             </div>
           ) : (
             <div className="text-center py-10">
-              <p className="text-xl">No user data found</p>
+              <p className="text-xl">No admin data found</p>
             </div>
           )}
         </div>
@@ -207,4 +207,4 @@ const UserProfilePage = () => {
   );
 };
 
-export default UserProfilePage;
+export default AdminProfilePage;

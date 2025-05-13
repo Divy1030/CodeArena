@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 import "server-only";
 
-export async function POST(
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ contestId: string }> }
 ) {
@@ -17,6 +17,8 @@ export async function POST(
       );
     }
 
+    const body = await request.json();
+
     // Get token from cookies or authorization header
     const token = request.cookies.get('accessToken')?.value || 
                   request.headers.get('authorization')?.replace('Bearer ', '');
@@ -29,12 +31,13 @@ export async function POST(
     }
 
     // Call backend API
-    const response = await fetch(`${endpoints.contest.joinContest}/${contestId}`, {
-      method: 'POST',
+    const response = await fetch(`${endpoints.contest.editContest}/${contestId}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
+      body: JSON.stringify(body),
       cache: "no-store",
     });
 
@@ -54,13 +57,13 @@ export async function POST(
     }
 
     const data = await response.json();
-    console.log("Join contest response:", data);
+    console.log("Edit contest response:", data);
 
     if (!response.ok) {
       return NextResponse.json(
         { 
           success: false, 
-          message: data.message || 'Failed to join contest',
+          message: data.message || 'Failed to edit contest',
           details: data
         },
         { status: response.status }
@@ -69,11 +72,11 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully joined the contest',
+      message: 'Contest updated successfully',
       data: data.data
     });
   } catch (error) {
-    console.error('Error joining contest:', error);
+    console.error('Error editing contest:', error);
     return NextResponse.json(
       { 
         success: false, 

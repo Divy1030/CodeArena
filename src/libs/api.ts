@@ -7,9 +7,7 @@ console.log('Using API base URL:', API_BASE_URL);
 const endpoints = {
   auth: {
     register: `${API_BASE_URL}/api/v1/auth/register`,
-
     googleLogin: `${API_BASE_URL}/api/v1/auth/google`,
-
     login: `${API_BASE_URL}/api/v1/auth/login`,
     logout: `${API_BASE_URL}/api/v1/auth/logout`,
     verifyOtp: `${API_BASE_URL}/api/v1/auth/v`,
@@ -27,12 +25,20 @@ const endpoints = {
     createContest: `${API_BASE_URL}/api/v1/contest/create-contest`,
     getAllContests: `${API_BASE_URL}/api/v1/contest/getAllContests`,
     joinContest: `${API_BASE_URL}/api/v1/contest/join-contest`,
+    editContest: `${API_BASE_URL}/api/v1/contest/edit-contest`,
+    enterContest: `${API_BASE_URL}/api/v1/contest/enter-contest`,
+    startContest: `${API_BASE_URL}/api/v1/contest/start-contest`,
+    getContestById: `${API_BASE_URL}/api/v1/contest/getContestById`,
+    deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
   },
   user: {
-    profile: `${API_BASE_URL}/api/v1/user/profile`,
-
+    getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
+    changePassword: `${API_BASE_URL}/api/v1/auth/change-password`, // This is correct based on controller
   },
-  // Add other endpoints as needed
+  problem: {
+    submit: `${API_BASE_URL}/api/v1/code/submit`,
+    run: `${API_BASE_URL}/api/v1/code/run`,
+  },
 };
 
 export default endpoints;
