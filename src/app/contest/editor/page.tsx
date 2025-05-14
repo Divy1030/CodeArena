@@ -50,6 +50,68 @@ const Compiler: React.FC = () => {
   const searchParams = useSearchParams();
   const questionId = searchParams.get('questionId');
   const contestId = searchParams.get('contestId');
+  const encodedProblemData = searchParams.get('problemData');
+
+  // Define problem data structure
+  interface ProblemData {
+    id: string;
+    title: string;
+    difficulty: string;
+    statement?: string;
+    testCases?: {
+      input: string;
+      output: string;
+      explanation?: string;
+      _id?: string;
+    }[];
+  }
+
+  // Parse problem data from URL
+  useEffect(() => {
+    if (encodedProblemData) {
+      try {
+        const decodedData: ProblemData = JSON.parse(decodeURIComponent(encodedProblemData));
+        
+        // Update problem data
+        setProblemData({
+          title: decodedData.title || "Problem",
+          difficulty: decodedData.difficulty || "Medium",
+          timeEstimate: "30 mins", // Default or calculate based on difficulty
+          points: getDifficultyPoints(decodedData.difficulty), // Helper function to assign points
+          description: decodedData.statement || "No description provided.",
+          examples: decodedData.testCases?.slice(0, 3).map((tc, idx) => ({
+            input: tc.input,
+            output: tc.output,
+            explanation: tc.explanation || "No explanation provided."
+          })) || [],
+          constraints: ["1 ≤ s.length ≤ 2 * 10^5"], // Default constraints
+          followUp: "Could you optimize your solution further?"
+        });
+        
+        // Update test cases based on problem data
+        if (decodedData.testCases && decodedData.testCases.length > 0) {
+          const formattedTestCases: TestCase[] = decodedData.testCases.map((tc, idx) => ({
+            id: idx + 1,
+            input: tc.input,
+            expectedOutput: tc.output,
+            status: 'pending'
+          }));
+          setTestCases(formattedTestCases);
+          setSelectedTestCase(formattedTestCases[0]);
+        }
+      } catch (error) {
+        console.error('Error parsing problem data:', error);
+      }
+    }
+  }, [encodedProblemData]);
+
+  // Helper function to assign points based on difficulty
+  const getDifficultyPoints = (difficulty: string = 'medium'): number => {
+    const difficultyLower = difficulty.toLowerCase();
+    if (difficultyLower === 'easy') return 100;
+    if (difficultyLower === 'hard') return 300;
+    return 200; // medium or default
+  };
 
   // Initial code templates for different languages
   const initialCodeTemplates = {
