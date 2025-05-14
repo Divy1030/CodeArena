@@ -341,9 +341,9 @@ const UserHome: React.FC = () => {
                     {activeTab === 'live' && (
                       <Button 
                         className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={() => router.push(`/contest/participate/${contest._id}`)}
+                        onClick={() => router.push(`/contest/details/${contest._id}`)}
                       >
-                        {contest.hasJoined ? 'Enter Contest' : 'Join & Enter Contest'}
+                        {contest.hasJoined ? 'Enter Contest' : 'Join Contest'}
                         <ChevronRight className="ml-1 w-4 h-4" />
                       </Button>
                     )}
