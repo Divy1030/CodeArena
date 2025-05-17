@@ -10,38 +10,31 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    // Set authentication state
-    setIsAuthenticated(true);
-
-    // Check if user is admin
-    const userDataString = localStorage.getItem('userData');
-    if (userDataString) {
+    // Get user data from localStorage or session
+    const storedUserData = localStorage.getItem('userData');
+    if (storedUserData) {
       try {
-        const userData = JSON.parse(userDataString);
-        // Check for the admin role in the user data
-        setIsAdmin(userData.role === 'admin');
-      } catch (err) {
-        console.error('Error parsing user data:', err);
+        const parsed = JSON.parse(storedUserData);
+        setUserData(parsed);
+      } catch (e) {
+        console.error("Failed to parse user data", e);
       }
     }
-  }, [router]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Custom Navbar with logged-in state */}
-      <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
+      <Navbar 
+        isAuthenticated={!!userData} 
+        isAdmin={userData?.role === 'admin'}
+        userProfilePicture={userData?.profilePicture || userData?.profile?.avatarUrl}
+        username={userData?.username}
+      />
       
       {/* Main content */}
       <main className="flex-1">

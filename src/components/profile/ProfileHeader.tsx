@@ -1,69 +1,91 @@
+"use client";
 import React from 'react';
 import Image from 'next/image';
 import { LogOut, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/dashboard/button';
+import ProfilePictureUpload from './ProfilePictureUpload';
 
-interface ProfileHeaderProps {
-  user: any;
-  onLogout: () => Promise<void>;
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  profile?: {
+    name?: string;
+    institution?: string;
+    country?: string;
+    avatarUrl?: string;
+    bio?: string;
+  };
+  rating: number;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onLogout }) => {
-  // Get first letter of username for avatar fallback
-  const userInitial = user.username ? user.username[0].toUpperCase() : 'U';
+interface ProfileHeaderProps {
+  user: User;
+  onLogout: () => void;
+  onProfileUpdate?: (newImageUrl: string) => void;  // Add this prop
+}
+
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
+  user, 
+  onLogout,
+  onProfileUpdate 
+}) => {
+  // State to keep track of the profile picture (so we can update it without reloading the page)
+  const [profilePicture, setProfilePicture] = React.useState<string | undefined | null>(
+    user.profilePicture || user.profile?.avatarUrl || null
+  );
+  
+  // Handle profile picture update
+  const handleProfilePictureUpdate = (newImageUrl: string) => {
+    setProfilePicture(newImageUrl);
+    // Also propagate the update up to the page component if needed
+    if (onProfileUpdate) {
+      onProfileUpdate(newImageUrl);
+    }
+  };
   
   return (
-    <div className="bg-[#121B38] rounded-xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6">
-      <div className="relative">
-        {user.profile?.avatarUrl ? (
-          <Image 
-            src={user.profile.avatarUrl}
-            alt={user.username}
-            width={120}
-            height={120}
-            className="rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-[120px] h-[120px] rounded-full bg-blue-600 flex items-center justify-center text-4xl font-bold">
-            {userInitial}
-          </div>
-        )}
-      </div>
-      
-      <div className="flex-grow text-center md:text-left">
-        <div className="flex flex-col md:flex-row md:items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">{user.username}</h1>
-            <p className="text-gray-400">{user.email}</p>
+    <div className="bg-[#121B38] rounded-xl p-6 md:p-8">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+        {/* Profile Picture with Upload Option */}
+        <ProfilePictureUpload 
+          currentImage={profilePicture} 
+          username={user.username}
+          onUpdate={handleProfilePictureUpdate} 
+        />
+        
+        {/* User Info */}
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold">{user.username}</h1>
+          
+          <div className="mt-2 text-gray-400 text-sm md:text-base">
+            <p>{user.email}</p>
             {user.profile?.institution && (
-              <p className="text-gray-300 mt-1">{user.profile.institution}</p>
+              <p className="mt-1">{user.profile.institution}</p>
             )}
             {user.profile?.country && (
-              <p className="text-gray-300">{user.profile.country}</p>
+              <p className="mt-1">{user.profile.country}</p>
             )}
           </div>
           
-          <div className="flex gap-3 mt-4 md:mt-0">
-            <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-              <Edit size={16} />
-              Edit Profile
-            </Button>
-            <Button 
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+          {user.profile?.bio && (
+            <p className="mt-4 text-gray-300">{user.profile.bio}</p>
+          )}
+          
+          <div className="mt-6 flex items-center justify-center md:justify-start gap-2">
+            <div className="bg-blue-900 px-4 py-1 rounded-full text-sm">
+              Rating: <span className="font-bold">{user.rating}</span>
+            </div>
+            
+            <button
               onClick={onLogout}
+              className="bg-red-600 hover:bg-red-700 transition-colors px-4 py-1 rounded-full text-sm"
             >
-              <LogOut size={16} />
-              Logout
-            </Button>
+              Sign Out
+            </button>
           </div>
         </div>
-        
-        {user.profile?.bio && (
-          <div className="mt-4">
-            <h3 className="text-lg font-medium">Bio</h3>
-            <p className="text-gray-300 mt-1">{user.profile.bio}</p>
-          </div>
-        )}
       </div>
     </div>
   );
