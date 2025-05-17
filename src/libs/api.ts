@@ -42,7 +42,7 @@ const endpoints = {
     updateContestDetails: `${API_BASE_URL}/api/v1/contest/update-contest-details`,
     
     // Moderator management
-    addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
+    // addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
     moderators: `${API_BASE_URL}/api/v1/contest/moderators`,
     editModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
     deleteModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
