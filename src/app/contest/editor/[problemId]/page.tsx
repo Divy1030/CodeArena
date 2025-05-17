@@ -48,7 +48,7 @@ interface ExecutionResult {
 
 const Compiler: React.FC = () => {
   const searchParams = useSearchParams();
-  const questionId = searchParams.get('questionId');
+  const questionId = searchParams.get('problemId');
   const contestId = searchParams.get('contestId');
   const encodedProblemData = searchParams.get('problemData');
 
@@ -197,38 +197,44 @@ int main() {
   ];
 
   // Update the problem data
-  const [problemData, setProblemData] = useState<any>({
-    title: "Valid Palindrome",
-    difficulty: "Easy",
-    timeEstimate: "15 mins",
-    points: 100,
-    description: "Check if a string is a valid palindrome, considering only alphanumeric characters and ignoring cases.",
-    examples: [
-      {
-        input: "A man, a plan, a canal: Panama",
-        output: "true",
-        explanation: "After removing non-alphanumeric characters and converting to lowercase, the string becomes 'amanaplanacanalpanama', which is a palindrome."
-      },
-      {
-        input: "race a car",
-        output: "false",
-        explanation: "After processing, the string becomes 'raceacar', which is not a palindrome."
-      },
-      {
-        input: "No lemon, no melon",
-        output: "true",
-        explanation: "After processing, it becomes 'nolemonnomelom', which is a palindrome."
-      }
-    ],
-    constraints: [
-      "1 ≤ s.length ≤ 2 * 10^5",
-      "The string consists only of printable ASCII characters."
-    ],
-    followUp: "Could you solve it without allocating extra space?"
-  });
+  const [problemData, setProblemData] = useState<any>(null);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [selectedTestCase, setSelectedTestCase] = useState<TestCase | null>(null);
 
-  const [testCases, setTestCases] = useState<TestCase[]>(testCasesData);
-  const [selectedTestCase, setSelectedTestCase] = useState<TestCase>(testCasesData[0]);
+  useEffect(() => {
+    if (encodedProblemData) {
+      try {
+        const decodedData: ProblemData = JSON.parse(decodeURIComponent(encodedProblemData));
+        setProblemData({
+          title: decodedData.title || "Problem",
+          difficulty: decodedData.difficulty || "Medium",
+          timeEstimate: "30 mins",
+          points: getDifficultyPoints(decodedData.difficulty),
+          description: decodedData.statement || "No description provided.",
+          examples: decodedData.testCases?.slice(0, 3).map((tc, idx) => ({
+            input: tc.input,
+            output: tc.output,
+            explanation: tc.explanation || "No explanation provided."
+          })) || [],
+          constraints: ["1 ≤ s.length ≤ 2 * 10^5"],
+          followUp: "Could you optimize your solution further?"
+        });
+        if (decodedData.testCases && decodedData.testCases.length > 0) {
+          const formattedTestCases: TestCase[] = decodedData.testCases.map((tc, idx) => ({
+            id: idx + 1,
+            input: tc.input,
+            expectedOutput: tc.output,
+            status: 'pending'
+          }));
+          setTestCases(formattedTestCases);
+          setSelectedTestCase(formattedTestCases[0]);
+        }
+      } catch (error) {
+        console.error('Error parsing problem data:', error);
+      }
+    }
+  }, [encodedProblemData]);
+
   const [code, setCode] = useState<string>(initialCodeTemplates.python);
   const [theme, setTheme] = useState<'dark' | 'light' | 'none'>('dark');
   const [fontSize, setFontSize] = useState<number>(14);
@@ -331,9 +337,11 @@ int main() {
         setTestCases(updatedTestCases);
         
         // Update selected test case if it's in the results
-        const updatedSelectedTestCase = updatedTestCases.find(tc => tc.id === selectedTestCase.id);
-        if (updatedSelectedTestCase) {
-          setSelectedTestCase(updatedSelectedTestCase);
+        if (selectedTestCase) {
+          const updatedSelectedTestCase = updatedTestCases.find(tc => tc.id === selectedTestCase.id);
+          if (updatedSelectedTestCase) {
+            setSelectedTestCase(updatedSelectedTestCase);
+          }
         }
       }
     } catch (error) {
@@ -736,7 +744,7 @@ int main() {
                     <button
                       key={testCase.id}
                       className={`flex items-center gap-2 px-4 py-2 rounded whitespace-nowrap mr-2 ${
-                        selectedTestCase.id === testCase.id ? 'bg-gray-800' : 'bg-none'
+                        selectedTestCase && selectedTestCase.id === testCase.id ? 'bg-gray-800' : 'bg-none'
                       }`}
                       onClick={() => setSelectedTestCase(testCase)}
                     >
@@ -751,25 +759,31 @@ int main() {
                   ))}
                 </div>
                 <div className="mt-2">
-                  <div className={
-                    selectedTestCase.status === 'passed' ? 'text-green-500' : 
-                    selectedTestCase.status === 'failed' ? 'text-red-500' : 'text-gray-500'
-                  }>
-                    Test Case #{selectedTestCase.id}: {
-                      selectedTestCase.status === 'pending' ? 'Pending' :
-                      selectedTestCase.status.charAt(0).toUpperCase() + selectedTestCase.status.slice(1)
-                    }
-                  </div>
+                  {selectedTestCase ? (
+                    <div className={
+                      selectedTestCase.status === 'passed' ? 'text-green-500' : 
+                      selectedTestCase.status === 'failed' ? 'text-red-500' : 'text-gray-500'
+                    }>
+                      Test Case #{selectedTestCase.id}: {
+                        selectedTestCase.status === 'pending' ? 'Pending' :
+                        selectedTestCase.status.charAt(0).toUpperCase() + selectedTestCase.status.slice(1)
+                      }
+                    </div>
+                  ) : (
+                    <div className="text-gray-500">
+                      No test case selected.
+                    </div>
+                  )}
                   <div className="text-white mt-2">
                     <div className="bg-gray-800 p-2 rounded mb-2">
                       <div className="text-xs text-gray-400">Input:</div>
-                      <pre className="font-mono">{selectedTestCase.input}</pre>
+                      <pre className="font-mono">{selectedTestCase ? selectedTestCase.input : ''}</pre>
                     </div>
                     <div className="bg-gray-800 p-2 rounded mb-2">
                       <div className="text-xs text-gray-400">Expected Output:</div>
-                      <pre className="font-mono">{selectedTestCase.expectedOutput}</pre>
+                      <pre className="font-mono">{selectedTestCase ? selectedTestCase.expectedOutput : ''}</pre>
                     </div>
-                    {selectedTestCase.actualOutput !== undefined && (
+                    {selectedTestCase && selectedTestCase.actualOutput !== undefined && (
                       <div className={`bg-gray-800 p-2 rounded mb-2 ${
                         selectedTestCase.status === 'failed' ? 'border border-red-600' : ''
                       }`}>
@@ -777,7 +791,7 @@ int main() {
                         <pre className="font-mono">{selectedTestCase.actualOutput}</pre>
                       </div>
                     )}
-                    {selectedTestCase.time && (
+                    {selectedTestCase && selectedTestCase.time && (
                       <div className="flex justify-between text-xs text-gray-400 mt-2">
                         <span>Time: {selectedTestCase.time}s</span>
                         {selectedTestCase.memory && <span>Memory: {selectedTestCase.memory} KB</span>}

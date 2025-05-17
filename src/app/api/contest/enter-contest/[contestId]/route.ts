@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 import "server-only";
 
-export async function POST(
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ contestId: string }> }
 ) {
@@ -30,7 +30,7 @@ export async function POST(
 
     // Call backend API
     const response = await fetch(`${endpoints.contest.enterContest}/${contestId}`, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`

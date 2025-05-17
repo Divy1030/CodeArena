@@ -31,6 +31,9 @@ const endpoints = {
     getContestById: `${API_BASE_URL}/api/v1/contest/getContestById`,
     deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
     addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
+    
+    addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`, 
+    submitSolution: `${API_BASE_URL}/api/v1/contest/submit-solution`,
     // Updated endpoints for problem management
     getProblems: `${API_BASE_URL}/api/v1/contest/get-problems`,
     updateProblem: `${API_BASE_URL}/api/v1/contest/update-problem`,
