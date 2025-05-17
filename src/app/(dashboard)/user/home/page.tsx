@@ -315,15 +315,22 @@ const UserHome: React.FC = () => {
                       ))}
                     </div>
                     
-                    {activeTab === 'upcoming' && (
-                      <Button 
+                    {(activeTab === 'upcoming' || activeTab === 'live') && (
+                      <Button
                         className={`w-full ${
-                          contest.hasJoined 
-                            ? 'bg-green-600 hover:bg-green-700' 
+                          contest.hasJoined
+                            ? 'bg-green-600 hover:bg-green-700'
                             : 'bg-blue-600 hover:bg-blue-700'
                         }`}
-                        onClick={() => contest.hasJoined ? null : joinContest(contest._id)}
-                        disabled={!!joiningContestId || contest.hasJoined}
+                        onClick={() => {
+                          if (contest.hasJoined) {
+                            // Allow entering contest for both upcoming and live
+                            router.push(`/contest/enter-contest/${contest._id}`);
+                          } else {
+                            joinContest(contest._id);
+                          }
+                        }}
+                        disabled={!!joiningContestId}
                       >
                         {joiningContestId === contest._id ? (
                           <span className="flex items-center">
@@ -331,20 +338,16 @@ const UserHome: React.FC = () => {
                             Joining...
                           </span>
                         ) : contest.hasJoined ? (
-                          'Registered'
+                          <>
+                            Enter Contest
+                            <ChevronRight className="ml-1 w-4 h-4" />
+                          </>
                         ) : (
-                          'Register'
+                          <>
+                            {activeTab === 'upcoming' ? 'Register' : 'Join Contest'}
+                            <ChevronRight className="ml-1 w-4 h-4" />
+                          </>
                         )}
-                      </Button>
-                    )}
-                    
-                    {activeTab === 'live' && (
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={() => router.push(`/contest/details/${contest._id}`)}
-                      >
-                        {contest.hasJoined ? 'Enter Contest' : 'Join Contest'}
-                        <ChevronRight className="ml-1 w-4 h-4" />
                       </Button>
                     )}
                     
