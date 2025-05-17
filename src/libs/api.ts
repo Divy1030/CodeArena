@@ -31,11 +31,23 @@ const endpoints = {
     getContestById: `${API_BASE_URL}/api/v1/contest/getContestById`,
     deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
     addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
-    addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`, // This is correct based on controller
+    // Updated endpoints for problem management
+    getProblems: `${API_BASE_URL}/api/v1/contest/get-problems`,
+    updateProblem: `${API_BASE_URL}/api/v1/contest/update-problem`,
+    deleteProblem: `${API_BASE_URL}/api/v1/contest/delete-problem`,
+    // Add this new endpoint for updateContestDetails
+    updateContestDetails: `${API_BASE_URL}/api/v1/contest/update-contest-details`,
+    
+    // Moderator management
+    addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
+    moderators: `${API_BASE_URL}/api/v1/contest/moderators`,
+    editModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
+    deleteModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
   },
   user: {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
     changePassword: `${API_BASE_URL}/api/v1/auth/change-password`, // This is correct based on controller
+    getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`, // Add this line
   },
   problem: {
     submit: `${API_BASE_URL}/api/v1/code/submit`,
