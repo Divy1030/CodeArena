@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
+import "server-only";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { contestId: string, moderatorId: string } }
+  { params }: { params: Promise<{ contestId: string, moderatorId: string }> }
 ) {
   try {
-    const { contestId, moderatorId } = params;
+    // Wait for params since it's now a Promise
+    const { contestId, moderatorId } = await params;
+    
+    if (!contestId || !moderatorId) {
+      return NextResponse.json(
+        { success: false, message: 'Contest ID and Moderator ID are required' },
+        { status: 400 }
+      );
+    }
+    
     const body = await request.json();
     
     // Get token from cookies or authorization header
@@ -21,9 +31,9 @@ export async function PUT(
       );
     }
 
+    console.log(`Editing moderator ${moderatorId} for contest ${contestId}`);
+
     // Call backend API to edit moderator
-    // Note that in your contest.routes.ts, the PUT route is defined with just contestId
-    // but we're adding moderatorId to the URL here to match your controller function
     const response = await fetch(`${endpoints.contest.editModerator}/${contestId}/${moderatorId}`, {
       method: 'PUT',
       headers: {
@@ -34,11 +44,31 @@ export async function PUT(
       cache: 'no-store'
     });
 
+    // Check if the response is JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      // Handle non-JSON response
+      const textResponse = await response.text();
+      console.error("Non-JSON response received:", textResponse);
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: "Server returned an invalid response format" 
+        },
+        { status: 500 }
+      );
+    }
+
     const data = await response.json();
+    console.log("Edit moderator response:", data);
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: data.message || "Failed to update moderator" },
+        { 
+          success: false, 
+          message: data.message || "Failed to update moderator",
+          details: data
+        },
         { status: response.status }
       );
     }
@@ -48,9 +78,13 @@ export async function PUT(
       message: data.message || "Moderator updated successfully"
     });
   } catch (error) {
-    console.error('Edit moderator error:', error);
+    console.error('Edit moderator error details:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { 
+        success: false, 
+        message: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

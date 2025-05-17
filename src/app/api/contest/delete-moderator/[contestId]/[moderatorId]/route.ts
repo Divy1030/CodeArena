@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
+import "server-only";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { contestId: string, moderatorId: string } }
+  { params }: { params: Promise<{ contestId: string, moderatorId: string }> }
 ) {
   try {
-    const { contestId, moderatorId } = params;
+    // Wait for params since it's now a Promise
+    const { contestId, moderatorId } = await params;
+    
+    if (!contestId || !moderatorId) {
+      return NextResponse.json(
+        { success: false, message: 'Contest ID and Moderator ID are required' },
+        { status: 400 }
+      );
+    }
     
     // Get token from cookies or authorization header
     const token = request.cookies.get('accessToken')?.value ||
@@ -20,9 +29,9 @@ export async function DELETE(
       );
     }
 
+    console.log(`Deleting moderator ${moderatorId} from contest ${contestId}`);
+
     // Call backend API to delete moderator
-    // Note that in your contest.routes.ts, the DELETE route is defined with just contestId
-    // but we're adding moderatorId to the URL here to match your controller function
     const response = await fetch(`${endpoints.contest.deleteModerator}/${contestId}/${moderatorId}`, {
       method: 'DELETE',
       headers: {
@@ -32,11 +41,31 @@ export async function DELETE(
       cache: 'no-store'
     });
 
+    // Check if the response is JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      // Handle non-JSON response
+      const textResponse = await response.text();
+      console.error("Non-JSON response received:", textResponse);
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: "Server returned an invalid response format" 
+        },
+        { status: 500 }
+      );
+    }
+
     const data = await response.json();
+    console.log("Delete moderator response:", data);
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: data.message || "Failed to delete moderator" },
+        { 
+          success: false, 
+          message: data.message || "Failed to delete moderator",
+          details: data
+        },
         { status: response.status }
       );
     }
@@ -46,9 +75,13 @@ export async function DELETE(
       message: data.message || "Moderator removed successfully"
     });
   } catch (error) {
-    console.error('Delete moderator error:', error);
+    console.error('Delete moderator error details:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { 
+        success: false, 
+        message: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

@@ -1,22 +1,35 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { LogOut, User, Settings, Bell } from 'lucide-react';
 import GooeyNav from '@/components/bits/Goey';
 
 interface NavbarProps {
   isAuthenticated?: boolean;
   isAdmin?: boolean;
+  userProfilePicture?: string | null;
+  username?: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
   isAuthenticated = false, 
-  isAdmin = false 
+  isAdmin = false,
+  userProfilePicture = null,
+  username = ''
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<boolean>(false);
+  const pathname = usePathname();
+
+  // Close menus when pathname changes (navigation occurs)
+  useEffect(() => {
+    setIsOpen(false);
+    setIsProfileOpen(false);
+  }, [pathname]);
 
   const toggleMenu = (): void => {
     setIsOpen(!isOpen);
@@ -35,6 +48,9 @@ const Navbar: React.FC<NavbarProps> = ({
     window.location.href = '/';
   };
 
+  // Get user's first initial for fallback avatar
+  const userInitial = username ? username.charAt(0).toUpperCase() : (isAdmin ? 'A' : 'U');
+
   // Define navigation items for authenticated users
   const getNavItems = () => {
     if (isAdmin) {
@@ -50,6 +66,30 @@ const Navbar: React.FC<NavbarProps> = ({
         { label: "Problems", href: "/problems" },
         { label: "Contests", href: "/contests" },
       ];
+    }
+  };
+
+  // Render profile avatar (image or fallback)
+  const renderProfileAvatar = () => {
+    if (userProfilePicture && !imageError) {
+      return (
+        <div className="relative w-8 h-8 rounded-full overflow-hidden">
+          <Image 
+            src={userProfilePicture}
+            alt={username || "User profile"}
+            fill
+            sizes="32px"
+            className="object-cover"
+            onError={() => setImageError(true)}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+          {userInitial}
+        </div>
+      );
     }
   };
 
@@ -113,10 +153,8 @@ const Navbar: React.FC<NavbarProps> = ({
                 onClick={toggleProfileMenu} 
                 className="flex items-center gap-2 text-gray-300 hover:text-white"
               >
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-                  {isAdmin ? 'A' : 'U'}
-                </div>
-                <span className="hidden lg:inline">{isAdmin ? 'Admin' : 'Profile'}</span>
+                {renderProfileAvatar()}
+                <span className="hidden lg:inline">{isAdmin ? 'Admin' : username || 'Profile'}</span>
               </button>
               
               {isProfileOpen && (
@@ -125,6 +163,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <Link 
                       href={isAdmin ? "/admin/profile" : "/user/profile"} 
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsProfileOpen(false)}
                     >
                       <User size={16} />
                       Profile
@@ -132,6 +171,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <Link 
                       href="/settings" 
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsProfileOpen(false)}
                     >
                       <Settings size={16} />
                       Settings
@@ -157,9 +197,7 @@ const Navbar: React.FC<NavbarProps> = ({
               onClick={toggleProfileMenu} 
               className="text-gray-300 hover:text-white"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-                {isAdmin ? 'A' : 'U'}
-              </div>
+              {renderProfileAvatar()}
             </button>
           )}
           
@@ -187,6 +225,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   key={index}
                   href={item.href} 
                   className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
+                  onClick={() => setIsOpen(false)}
                 >
                   {item.label}
                 </Link>
@@ -195,12 +234,14 @@ const Navbar: React.FC<NavbarProps> = ({
               <Link 
                 href={isAdmin ? "/admin/profile" : "/user/profile"} 
                 className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
+                onClick={() => setIsOpen(false)}
               >
                 Profile
               </Link>
               <Link 
                 href="/settings" 
                 className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
+                onClick={() => setIsOpen(false)}
               >
                 Settings
               </Link>
@@ -217,12 +258,14 @@ const Navbar: React.FC<NavbarProps> = ({
               <Link 
                 href="/register" 
                 className="block px-4 py-2 rounded-md bg-white text-black hover:bg-gray-300"
+                onClick={() => setIsOpen(false)}
               >
                 Sign-Up
               </Link>
               <Link 
                 href="/login" 
                 className="block px-4 py-2 rounded-md bg-white text-black hover:bg-gray-300"
+                onClick={() => setIsOpen(false)}
               >
                 Log-In
               </Link>
@@ -237,12 +280,14 @@ const Navbar: React.FC<NavbarProps> = ({
           <Link 
             href={isAdmin ? "/admin/profile" : "/user/profile"} 
             className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
+            onClick={() => setIsProfileOpen(false)}
           >
             Profile
           </Link>
           <Link 
             href="/settings" 
             className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
+            onClick={() => setIsProfileOpen(false)}
           >
             Settings
           </Link>

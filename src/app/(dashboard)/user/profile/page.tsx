@@ -154,6 +154,16 @@ const UserProfilePage = () => {
   // Add special handling for Google login users
   const isGoogleUser = userData && !userData.password;
 
+  const handleProfilePictureUpdate = (newImageUrl: string) => {
+    // Update the user data with the new profile picture
+    if (userData) {
+      setUserData({
+        ...userData,
+        profilePicture: newImageUrl
+      });
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-[#0f172a] text-white">
@@ -177,6 +187,7 @@ const UserProfilePage = () => {
               <ProfileHeader 
                 user={userData} 
                 onLogout={handleLogout}
+                onProfileUpdate={handleProfilePictureUpdate}
               />
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">

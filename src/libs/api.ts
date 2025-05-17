@@ -51,6 +51,7 @@ const endpoints = {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
     changePassword: `${API_BASE_URL}/api/v1/auth/change-password`, // This is correct based on controller
     getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`, // Add this line
+    uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
   },
   problem: {
     submit: `${API_BASE_URL}/api/v1/code/submit`,
