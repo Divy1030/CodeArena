@@ -183,14 +183,7 @@ const StartContestPage = () => {
                   key={problem._id}
                   className="group bg-[#1e293b] rounded-lg p-4 transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:border-blue-600 border border-transparent cursor-pointer relative"
                   onClick={() => {
-                    const problemData = encodeURIComponent(JSON.stringify({
-                      id: problem._id,
-                      title: problem.title,
-                      difficulty: problem.difficulty,
-                      statement: problem.statement,
-                      testCases: problem.testCases || []
-                    }));
-                    router.push(`/contest/editor?contestId=${contestId}&problemData=${problemData}`);
+                    router.push(`/contest/editor/${contestId}/${problem._id}`);
                   }}
                 >
                   <div className="flex justify-between items-center">
@@ -210,14 +203,7 @@ const StartContestPage = () => {
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold shadow transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg"
                       onClick={e => {
                         e.stopPropagation();
-                        const problemData = encodeURIComponent(JSON.stringify({
-                          id: problem._id,
-                          title: problem.title,
-                          difficulty: problem.difficulty,
-                          statement: problem.statement,
-                          testCases: problem.testCases || []
-                        }));
-                        router.push(`/contest/editor?contestId=${contestId}&problemData=${problemData}`);
+                        router.push(`/contest/editor/${contestId}/${problem._id}`);
                       }}
                     >
                       Solve
