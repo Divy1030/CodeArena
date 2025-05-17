@@ -124,27 +124,37 @@ int main() {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        // Replace with your actual API endpoint
-        const res = await fetch(`/api/contest/${contestId}/problem/${problemId}`);
+        const res = await fetch(`/api/problem/getProblem/${contestId}/${problemId}`);
         const data = await res.json();
-        if (data.success && data.problem) {
-          const p = data.problem;
+        if (data.statusCode === 200 && data.data) {
+          const p = data.data;
+          // Normalize constraints and testCases to arrays
+          const constraintsArr = Array.isArray(p.constraints)
+            ? p.constraints
+            : p.constraints
+              ? [p.constraints]
+              : [];
+          const testCasesArr = Array.isArray(p.testCases)
+            ? p.testCases
+            : p.testCases
+              ? [p.testCases]
+              : [];
           setProblemData({
             title: p.title || "Problem",
             difficulty: p.difficulty || "Medium",
-            timeEstimate: "30 mins",
-            points: getDifficultyPoints(p.difficulty),
+            timeEstimate: (p.timeLimit ? `${p.timeLimit} sec` : "30 mins"),
+            points: p.maxScore || getDifficultyPoints(p.difficulty),
             description: p.statement || "No description provided.",
-            examples: p.testCases?.slice(0, 3).map((tc: any) => ({
+            examples: testCasesArr.slice(0, 3).map((tc: any) => ({
               input: tc.input,
               output: tc.output,
               explanation: tc.explanation || "No explanation provided."
-            })) || [],
-            constraints: p.constraints || ["1 ≤ s.length ≤ 2 * 10^5"],
-            followUp: p.followUp || "Could you optimize your solution further?"
+            })),
+            constraints: constraintsArr.length > 0 ? constraintsArr : ["No constraints specified."],
+            followUp: p.followUp || ""
           });
-          if (p.testCases && p.testCases.length > 0) {
-            const formattedTestCases: TestCase[] = p.testCases.map((tc: any, idx: number) => ({
+          if (testCasesArr.length > 0) {
+            const formattedTestCases: TestCase[] = testCasesArr.map((tc: any, idx: number) => ({
               id: idx + 1,
               input: tc.input,
               expectedOutput: tc.output,
@@ -153,9 +163,33 @@ int main() {
             setTestCases(formattedTestCases);
             setSelectedTestCase(formattedTestCases[0]);
           }
+        } else {
+          setProblemData({
+            title: "Problem Not Found",
+            difficulty: "N/A",
+            timeEstimate: "-",
+            points: 0,
+            description: data.message || "Problem could not be loaded.",
+            examples: [],
+            constraints: [],
+            followUp: ""
+          });
+          setTestCases([]);
+          setSelectedTestCase(null);
         }
       } catch (error) {
-        console.error('Error fetching problem:', error);
+        setProblemData({
+          title: "Error",
+          difficulty: "N/A",
+          timeEstimate: "-",
+          points: 0,
+          description: "Failed to fetch problem.",
+          examples: [],
+          constraints: [],
+          followUp: ""
+        });
+        setTestCases([]);
+        setSelectedTestCase(null);
       }
     };
     if (contestId && problemId) fetchProblem();
@@ -446,6 +480,14 @@ int main() {
     }
   });
   
+  if (!problemData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        Loading problem...
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen bg-gray-900 text-white ${isFullScreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Navigation Bar */}

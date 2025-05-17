@@ -1,5 +1,6 @@
 // Use the environment variable for the API base URL with fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://code-arena-backend.onrender.com';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://code-arena-backend.onrender.com';
+const API_BASE_URL = 'http://localhost:8000';
 
 // Log the API URL for debugging
 console.log('Using API base URL:', API_BASE_URL);
@@ -32,7 +33,7 @@ const endpoints = {
     deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
     addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
     
-    addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`, 
+
     submitSolution: `${API_BASE_URL}/api/v1/contest/submit-solution`,
     // Updated endpoints for problem management
     getProblems: `${API_BASE_URL}/api/v1/contest/get-problems`,
@@ -56,6 +57,7 @@ const endpoints = {
   problem: {
     submit: `${API_BASE_URL}/api/v1/code/submit`,
     run: `${API_BASE_URL}/api/v1/code/run`,
+    getProblemById: `${API_BASE_URL}/api/v1/problem/get-problem`,
   },
 };
 
