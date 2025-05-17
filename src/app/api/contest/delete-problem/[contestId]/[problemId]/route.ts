@@ -1,48 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
-import endpoints from '@/libs/api';
+import { NextRequest, NextResponse } from "next/server";
+import endpoints from "@/libs/api";
 import "server-only";
 
-export async function POST(
+export async function DELETE(
   request: NextRequest,
-  { params }: { params: { contestId: string } }
+  { params }: { params: Promise<{ contestId: string; problemId: string }> }
 ) {
   try {
-    const { contestId } = params;
+    // Wait for params since it's now a Promise
+    const { contestId, problemId } = await params;
     
-    if (!contestId) {
+    if (!contestId || !problemId) {
       return NextResponse.json(
-        { success: false, message: 'Contest ID is required' },
+        { success: false, message: 'Contest ID and Problem ID are required' },
         { status: 400 }
       );
     }
 
-    // Get the problem data from the request body
-    const requestData = await request.json();
-
-    // Get token from cookies
-    const token = request.cookies.get('accessToken')?.value;
+    // Get token from cookies or authorization header
+    const token = request.cookies.get('accessToken')?.value || 
+                  request.cookies.get('token')?.value ||
+                  request.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {
       return NextResponse.json(
-        { success: false, message: 'Authentication required' },
+        { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Ensure testCases is properly formatted
-    if (!requestData.testCases) {
-      requestData.testCases = [];
-    }
-
-    // Call backend API
-    const response = await fetch(`${endpoints.contest.addProblems}/${contestId}`, {
-      method: 'POST',
+    // Make the API call
+    const response = await fetch(`${endpoints.contest.deleteProblem}/${contestId}/${problemId}`, {
+      method: "DELETE",
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(requestData),
-      cache: "no-store",
     });
 
     // Check if the response is JSON
@@ -61,12 +54,12 @@ export async function POST(
     }
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       return NextResponse.json(
         { 
           success: false, 
-          message: data.message || 'Failed to add problem to contest',
+          message: data.message || 'Failed to delete problem',
           details: data
         },
         { status: response.status }
@@ -75,11 +68,10 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: data.message,
-      data: data.data
+      message: "Problem deleted successfully"
     });
   } catch (error) {
-    console.error('Error adding problem to contest:', error);
+    console.error('Error deleting problem:', error);
     return NextResponse.json(
       { 
         success: false, 

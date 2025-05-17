@@ -8,6 +8,7 @@ import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileActivity from '@/components/profile/ProfileActivity';
 import SecuritySettings from '@/components/profile/SecuritySettings';
+import ManageableContests from '@/components/profile/ManageableContests';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const UserProfilePage = () => {
@@ -182,7 +183,8 @@ const UserProfilePage = () => {
                   <ProfileStats user={userData} />
                   <ProfileActivity user={userData} />
                 </div>
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 space-y-8">
+                  {/* Security Settings */}
                   {isGoogleUser ? (
                     <div className="bg-[#121B38] rounded-xl p-6">
                       <h3 className="text-lg font-medium mb-4">Security Settings</h3>
@@ -193,6 +195,9 @@ const UserProfilePage = () => {
                   ) : (
                     <SecuritySettings onPasswordChange={handlePasswordChange} />
                   )}
+                  
+                  {/* Manageable Contests */}
+                  <ManageableContests userId={userData._id} />
                 </div>
               </div>
             </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import Image from "next/image";
 import RotatingText from "@/components/bits/RotatingText";
+import Hyperspeed from "@/components/bits/HyperSpeed";
 
 // Updated SkillsSection with integrated RotatingText
 const SkillsSection = () => (
@@ -61,43 +62,52 @@ const FocusOnCode = () => (
   </section>
 );
 
-// Simplified hyperspeed effect
-const Hyperspeed = () => {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900 via-blue-950 to-black opacity-80"></div>
-      {Array.from({ length: 50 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute bg-white rounded-full"
-          style={{
-            width: Math.random() * 3 + "px",
-            height: Math.random() * 3 + "px",
-            top: Math.random() * 100 + "%",
-            left: Math.random() * 100 + "%",
-            opacity: Math.random() * 0.7,
-            animation: `hyperspeed ${Math.random() * 3 + 2}s linear infinite`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 export default function Home() {
+  // State for hyperspeed effect speed control
+  const [isHyperspeedFast, setIsHyperspeedFast] = useState(false);
+
+  // Handle mouse events for speed boost
+  const handleSpeedUp = () => {
+    setIsHyperspeedFast(true);
+  };
+
+  const handleSlowDown = () => {
+    setIsHyperspeedFast(false);
+  };
+
+  // Custom hyperspeed options
+  const hyperspeedOptions = {
+    fov: 90,
+    fovSpeedUp: 140,
+    speedUp: 3,
+    colors: {
+      roadColor: 0x080830,
+      islandColor: 0x0a0a3a,
+      background: 0x000022,
+      shoulderLines: 0x4040ff,
+      brokenLines: 0x4040ff,
+      leftCars: [0x4444ff, 0x4444ff, 0x4444ff],
+      rightCars: [0x4040cc, 0x3030cc, 0x2020cc],
+      sticks: 0x4040cc,
+    },
+    isHyper: isHyperspeedFast,
+    onSpeedUp: handleSpeedUp,
+    onSlowDown: handleSlowDown,
+  };
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
       {/* Use the Navbar component */}
       <Navbar isAuthenticated={false} isAdmin={false} />
-      
-      {/* Hero Section */}
-      <div className="relative bg-black min-h-screen">
-        <div className="absolute inset-0 z-0 h-full w-full">
-          {/* Uncomment to use the hyperspeed effect */}
-          {/* <Hyperspeed /> */}
+
+      {/* Hero Section with Hyperspeed */}
+      <div className="relative bg-black h-[100vh] overflow-hidden">
+        {/* Hyperspeed effect container */}
+        <div className="absolute inset-0 z-0 h-full w-full opacity-70">
+          <Hyperspeed effectOptions={hyperspeedOptions} />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 text-left z-10 flex flex-col justify-center min-h-[70vh]">
+        <div className="relative max-w-7xl mx-auto px-4 text-left z-10 flex flex-col justify-center h-full">
           <div className="flex flex-col items-start pt-16">
             <h1 className="text-4xl md:text-6xl font-normal mb-8 text-white text-left">
               Enter the Arena, Unleash Your <br /> Coding Skills, and Conquer{" "}
@@ -109,7 +119,13 @@ export default function Home() {
             </p>
             <div className="flex flex-col md:flex-row gap-4 mb-20">
               <Link href="/register">
-                <button className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                <button
+                  className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  onMouseEnter={handleSpeedUp}
+                  onMouseLeave={handleSlowDown}
+                  onTouchStart={handleSpeedUp}
+                  onTouchEnd={handleSlowDown}
+                >
                   Get Started →
                 </button>
               </Link>
@@ -117,30 +133,13 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
-      {/* Feature Sections - removed the standalone RotatingText component */}
+
+      {/* Feature Sections */}
       <SkillsSection />
       <FocusOnCode />
-      
+
       {/* Use the Footer component */}
       <Footer />
-      
-      <style jsx>{`
-        @keyframes hyperspeed {
-          0% {
-            transform: translateX(0) translateY(0) scale(1);
-            opacity: 0;
-          }
-          50% {
-            opacity: 0.7;
-          }
-          100% {
-            transform: translateX(calc(100vw - 100%))
-              translateY(calc(100vh - 100%)) scale(0.1);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
