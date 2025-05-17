@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { ChevronDown, Play, Settings, Trophy, Award, Maximize2, Minimize2, Clock, AlertCircle } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
@@ -47,71 +47,14 @@ interface ExecutionResult {
 }
 
 const Compiler: React.FC = () => {
-  const searchParams = useSearchParams();
-  const questionId = searchParams.get('problemId');
-  const contestId = searchParams.get('contestId');
-  const encodedProblemData = searchParams.get('problemData');
+  const params = useParams();
+  const contestId = params?.contestId as string;
+  const problemId = params?.problemId as string;
 
-  // Define problem data structure
-  interface ProblemData {
-    id: string;
-    title: string;
-    difficulty: string;
-    statement?: string;
-    testCases?: {
-      input: string;
-      output: string;
-      explanation?: string;
-      _id?: string;
-    }[];
-  }
-
-  // Parse problem data from URL
-  useEffect(() => {
-    if (encodedProblemData) {
-      try {
-        const decodedData: ProblemData = JSON.parse(decodeURIComponent(encodedProblemData));
-        
-        // Update problem data
-        setProblemData({
-          title: decodedData.title || "Problem",
-          difficulty: decodedData.difficulty || "Medium",
-          timeEstimate: "30 mins", // Default or calculate based on difficulty
-          points: getDifficultyPoints(decodedData.difficulty), // Helper function to assign points
-          description: decodedData.statement || "No description provided.",
-          examples: decodedData.testCases?.slice(0, 3).map((tc, idx) => ({
-            input: tc.input,
-            output: tc.output,
-            explanation: tc.explanation || "No explanation provided."
-          })) || [],
-          constraints: ["1 ≤ s.length ≤ 2 * 10^5"], // Default constraints
-          followUp: "Could you optimize your solution further?"
-        });
-        
-        // Update test cases based on problem data
-        if (decodedData.testCases && decodedData.testCases.length > 0) {
-          const formattedTestCases: TestCase[] = decodedData.testCases.map((tc, idx) => ({
-            id: idx + 1,
-            input: tc.input,
-            expectedOutput: tc.output,
-            status: 'pending'
-          }));
-          setTestCases(formattedTestCases);
-          setSelectedTestCase(formattedTestCases[0]);
-        }
-      } catch (error) {
-        console.error('Error parsing problem data:', error);
-      }
-    }
-  }, [encodedProblemData]);
-
-  // Helper function to assign points based on difficulty
-  const getDifficultyPoints = (difficulty: string = 'medium'): number => {
-    const difficultyLower = difficulty.toLowerCase();
-    if (difficultyLower === 'easy') return 100;
-    if (difficultyLower === 'hard') return 300;
-    return 200; // medium or default
-  };
+  // State for problem data and test cases
+  const [problemData, setProblemData] = useState<any>(null);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [selectedTestCase, setSelectedTestCase] = useState<TestCase | null>(null);
 
   // Initial code templates for different languages
   const initialCodeTemplates = {
@@ -169,71 +112,54 @@ int main() {
 }`
   };
 
-  const testCasesData: TestCase[] = [
-    {
-      id: 1,
-      input: "A man, a plan, a canal: Panama",
-      expectedOutput: "true",
-      status: 'pending'
-    },
-    {
-      id: 2,
-      input: "race a car",
-      expectedOutput: "false",
-      status: 'pending'
-    },
-    {
-      id: 3,
-      input: "No lemon, no melon",
-      expectedOutput: "true",
-      status: 'pending'
-    },
-    {
-      id: 4,
-      input: " ",
-      expectedOutput: "true",
-      status: 'pending'
-    }
-  ];
+  // Helper function to assign points based on difficulty
+  const getDifficultyPoints = (difficulty: string = 'medium'): number => {
+    const difficultyLower = difficulty.toLowerCase();
+    if (difficultyLower === 'easy') return 100;
+    if (difficultyLower === 'hard') return 300;
+    return 200; // medium or default
+  };
 
   // Update the problem data
-  const [problemData, setProblemData] = useState<any>(null);
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [selectedTestCase, setSelectedTestCase] = useState<TestCase | null>(null);
-
   useEffect(() => {
-    if (encodedProblemData) {
+    const fetchProblem = async () => {
       try {
-        const decodedData: ProblemData = JSON.parse(decodeURIComponent(encodedProblemData));
-        setProblemData({
-          title: decodedData.title || "Problem",
-          difficulty: decodedData.difficulty || "Medium",
-          timeEstimate: "30 mins",
-          points: getDifficultyPoints(decodedData.difficulty),
-          description: decodedData.statement || "No description provided.",
-          examples: decodedData.testCases?.slice(0, 3).map((tc, idx) => ({
-            input: tc.input,
-            output: tc.output,
-            explanation: tc.explanation || "No explanation provided."
-          })) || [],
-          constraints: ["1 ≤ s.length ≤ 2 * 10^5"],
-          followUp: "Could you optimize your solution further?"
-        });
-        if (decodedData.testCases && decodedData.testCases.length > 0) {
-          const formattedTestCases: TestCase[] = decodedData.testCases.map((tc, idx) => ({
-            id: idx + 1,
-            input: tc.input,
-            expectedOutput: tc.output,
-            status: 'pending'
-          }));
-          setTestCases(formattedTestCases);
-          setSelectedTestCase(formattedTestCases[0]);
+        // Replace with your actual API endpoint
+        const res = await fetch(`/api/contest/${contestId}/problem/${problemId}`);
+        const data = await res.json();
+        if (data.success && data.problem) {
+          const p = data.problem;
+          setProblemData({
+            title: p.title || "Problem",
+            difficulty: p.difficulty || "Medium",
+            timeEstimate: "30 mins",
+            points: getDifficultyPoints(p.difficulty),
+            description: p.statement || "No description provided.",
+            examples: p.testCases?.slice(0, 3).map((tc: any) => ({
+              input: tc.input,
+              output: tc.output,
+              explanation: tc.explanation || "No explanation provided."
+            })) || [],
+            constraints: p.constraints || ["1 ≤ s.length ≤ 2 * 10^5"],
+            followUp: p.followUp || "Could you optimize your solution further?"
+          });
+          if (p.testCases && p.testCases.length > 0) {
+            const formattedTestCases: TestCase[] = p.testCases.map((tc: any, idx: number) => ({
+              id: idx + 1,
+              input: tc.input,
+              expectedOutput: tc.output,
+              status: 'pending'
+            }));
+            setTestCases(formattedTestCases);
+            setSelectedTestCase(formattedTestCases[0]);
+          }
         }
       } catch (error) {
-        console.error('Error parsing problem data:', error);
+        console.error('Error fetching problem:', error);
       }
-    }
-  }, [encodedProblemData]);
+    };
+    if (contestId && problemId) fetchProblem();
+  }, [contestId, problemId]);
 
   const [code, setCode] = useState<string>(initialCodeTemplates.python);
   const [theme, setTheme] = useState<'dark' | 'light' | 'none'>('dark');
@@ -263,17 +189,6 @@ int main() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Fetch problem data based on URL params
-  useEffect(() => {
-    if (questionId && contestId) {
-      // In a real app, you would fetch the specific problem data here
-      console.log(`Loading question ID: ${questionId} from contest: ${contestId}`);
-      
-      // For demo purposes, we're using the hardcoded data
-      // But you would replace this with an API call
-    }
-  }, [questionId, contestId]);
 
   const resetCode = (): void => {
     setCode(initialCodeTemplates[languageName as keyof typeof initialCodeTemplates]);

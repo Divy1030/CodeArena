@@ -190,7 +190,9 @@ const StartContestPage = () => {
                       statement: problem.statement,
                       testCases: problem.testCases || []
                     }));
-                    router.push(`/contest/editor?contestId=${contestId}&problemData=${problemData}`);
+                    router.push(
+                      `/contest/editor/${contestId}/${problem._id}?problemData=${problemData}`
+                    );
                   }}
                 >
                   <div className="flex justify-between items-center">
@@ -217,7 +219,9 @@ const StartContestPage = () => {
                           statement: problem.statement,
                           testCases: problem.testCases || []
                         }));
-                        router.push(`/contest/editor?contestId=${contestId}&problemData=${problemData}`);
+                        router.push(
+                          `/contest/editor/${contestId}/${problem._id}?problemData=${problemData}`
+                        );
                       }}
                     >
                       Solve
