@@ -1,13 +1,66 @@
-import "server-only";
+// Use the environment variable for the API base URL with fallback
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://code-arena-backend.onrender.com';
+const API_BASE_URL = 'http://localhost:8000';
 
-// Use the environment variable for the API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// Log the API URL for debugging
+console.log('Using API base URL:', API_BASE_URL);
 
 const endpoints = {
   auth: {
-    login: `${API_BASE_URL}/auth/v1/login`,
-    register: `${API_BASE_URL}/auth/v1/signup`,
-  }
+    register: `${API_BASE_URL}/api/v1/auth/register`,
+    googleLogin: `${API_BASE_URL}/api/v1/auth/google`,
+    login: `${API_BASE_URL}/api/v1/auth/login`,
+    logout: `${API_BASE_URL}/api/v1/auth/logout`,
+    verifyOtp: `${API_BASE_URL}/api/v1/auth/v`,
+    forgotPassword: `${API_BASE_URL}/api/v1/auth/forgot-password`,
+    verifyResetPasswordOtp: `${API_BASE_URL}/api/v1/auth/verify-reset-password-otp`,
+    updatePassword: `${API_BASE_URL}/api/v1/auth/update-password`,
+    refreshToken: `${API_BASE_URL}/api/v1/auth/refresh-token`,
+  },
+  admin: {
+    register: `${API_BASE_URL}/api/v1/admin/register`,
+    login: `${API_BASE_URL}/api/v1/admin/login`,
+    getAdminInfo: `${API_BASE_URL}/api/v1/admin/get-admin`,
+  },
+  contest: {
+    createContest: `${API_BASE_URL}/api/v1/contest/create-contest`,
+    getAllContests: `${API_BASE_URL}/api/v1/contest/getAllContests`,
+    joinContest: `${API_BASE_URL}/api/v1/contest/join-contest`,
+    editContest: `${API_BASE_URL}/api/v1/contest/edit-contest`,
+    enterContest: `${API_BASE_URL}/api/v1/contest/enter-contest`,
+    startContest: `${API_BASE_URL}/api/v1/contest/start-contest`,
+    getContestById: `${API_BASE_URL}/api/v1/contest/getContestById`,
+    deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
+    addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
+    
+
+    submitSolution: `${API_BASE_URL}/api/v1/contest/submit-solution`,
+    // Updated endpoints for problem management
+    getProblems: `${API_BASE_URL}/api/v1/contest/get-problems`,
+    updateProblem: `${API_BASE_URL}/api/v1/contest/update-problem`,
+    deleteProblem: `${API_BASE_URL}/api/v1/contest/delete-problem`,
+    // Add this new endpoint for updateContestDetails
+    updateContestDetails: `${API_BASE_URL}/api/v1/contest/update-contest-details`,
+    
+    // Moderator management
+    // addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
+    moderators: `${API_BASE_URL}/api/v1/contest/moderators`,
+    editModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
+    deleteModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
+    getContestParticipants: `${API_BASE_URL}/api/v1/contest`, // We'll append contestId in the route
+  },
+  user: {
+    getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
+    changePassword: `${API_BASE_URL}/api/v1/auth/change-password`, // This is correct based on controller
+    getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`, // Add this line
+    uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
+    getUserById: `${API_BASE_URL}/api/v1/user`, // Update this line - remove "auth/" from path
+  },
+  problem: {
+    submit: `${API_BASE_URL}/api/v1/code/submit`,
+    run: `${API_BASE_URL}/api/v1/code/run`,
+    getProblemById: `${API_BASE_URL}/api/v1/problem/get-problem`,
+  },
 };
 
 export default endpoints;
