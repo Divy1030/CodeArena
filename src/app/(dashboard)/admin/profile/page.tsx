@@ -152,9 +152,32 @@ const AdminProfilePage = () => {
 
   // Add special handling for Google login users
   const isGoogleUser = adminData && !adminData.password;
+  
+  // Add handler for profile picture update
+  const handleProfilePictureUpdate = (newImageUrl: string) => {
+    // Update the admin data with the new profile picture
+    if (adminData) {
+      setAdminData({
+        ...adminData,
+        profilePicture: newImageUrl
+      });
+      
+      // Update the user data in localStorage if it exists
+      const storedUserData = localStorage.getItem('userData');
+      if (storedUserData) {
+        try {
+          const userData = JSON.parse(storedUserData);
+          userData.profilePicture = newImageUrl;
+          localStorage.setItem('userData', JSON.stringify(userData));
+        } catch (e) {
+          console.error('Error updating stored user data:', e);
+        }
+      }
+    }
+  };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute adminOnly>
       <div className="min-h-screen bg-[#0f172a] text-white">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {loading ? (
@@ -176,6 +199,7 @@ const AdminProfilePage = () => {
               <AdminProfileHeader 
                 admin={adminData} 
                 onLogout={handleLogout}
+                onProfileUpdate={handleProfilePictureUpdate} // Add this prop
               />
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">

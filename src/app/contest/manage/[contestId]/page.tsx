@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { toast } from "react-hot-toast";
+import ContestBackgroundUpload from "@/components/contest/ContestBackgroundUpload";
 
 interface ContestData {
   _id: string;
@@ -22,6 +23,7 @@ interface ContestData {
   landingPageTitle?: string;
   landingPageDescription?: string;
   landingPageImage?: string;
+  backgroundImage?: string; // Add background image field
 }
 
 function ContestDetailsPage() {
@@ -44,6 +46,7 @@ function ContestDetailsPage() {
   const [rules, setRules] = useState("");
   const [scoring, setScoring] = useState("");
   const [landingPageImage, setLandingPageImage] = useState<File | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null); // Add state for background image
   const [contestUrl, setContestUrl] = useState("");
   
   const fetchContest = async () => {
@@ -76,6 +79,7 @@ function ContestDetailsPage() {
         setPrizes(result.data.prizes || "");
         setRules(result.data.rules || "");
         setScoring(result.data.scoring || "");
+        setBackgroundImage(result.data.backgroundImage || null); // Set background image
       } else {
         toast.error("Failed to load contest details");
       }
@@ -96,6 +100,12 @@ function ContestDetailsPage() {
     if (e.target.files && e.target.files[0]) {
       setLandingPageImage(e.target.files[0]);
     }
+  };
+  
+  // Handler for background image updates
+  const handleBackgroundUpdate = (imageUrl: string) => {
+    setBackgroundImage(imageUrl);
+    setContest(prev => prev ? { ...prev, backgroundImage: imageUrl } : null);
   };
 
   const handleSaveChanges = async () => {
@@ -132,6 +142,7 @@ function ContestDetailsPage() {
         rules,
         scoring,
         landingPageImage: imageUrl,
+        backgroundImage, // Include background image in the update
       });
 
       const response = await fetch(`/api/contest/updateContestDetails/${contestId}`, {
@@ -151,6 +162,7 @@ function ContestDetailsPage() {
           rules,
           scoring,
           landingPageImage: imageUrl,
+          backgroundImage, // Include background image in the update
         }),
       });
 
@@ -219,7 +231,7 @@ function ContestDetailsPage() {
                   toast.success("URL copied to clipboard!");
                 }}
               >
-                edit
+                Copy
               </button>
             </div>
           </div>
@@ -269,6 +281,17 @@ function ContestDetailsPage() {
               </div>
             </div>
           </div>
+          
+          {/* Contest Background Upload Component */}
+          <div className="mt-8 pt-4 border-t border-gray-700">
+            <ContestBackgroundUpload
+              contestId={contestId}
+              currentImage={backgroundImage}
+              onUpdate={handleBackgroundUpdate}
+            />
+          </div>
+          
+          {/* Add more sections as needed */}
         </div>
         
         <div className="mt-10 flex flex-col sm:flex-row justify-between gap-4">
@@ -276,6 +299,8 @@ function ContestDetailsPage() {
             <Link 
               href={`/contest/${contestId}/preview`}
               className="px-4 py-2 bg-transparent text-gray-300 border border-gray-700 rounded-md hover:bg-[#1e293b] text-center"
+              target="_blank" // Add this to open in new tab
+              rel="noopener noreferrer" // Security best practice for target="_blank"
             >
               Preview Landing Page
             </Link>
