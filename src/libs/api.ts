@@ -43,11 +43,12 @@ const endpoints = {
     updateContestDetails: `${API_BASE_URL}/api/v1/contest/update-contest-details`,
     
     // Moderator management
-    // addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
+    addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
     moderators: `${API_BASE_URL}/api/v1/contest/moderators`,
     editModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
     deleteModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
     getContestParticipants: `${API_BASE_URL}/api/v1/contest`, // We'll append contestId in the route
+    uploadBackground: `${API_BASE_URL}/api/v1/contest/background`,
   },
   user: {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
