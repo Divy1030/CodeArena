@@ -47,12 +47,14 @@ const endpoints = {
     moderators: `${API_BASE_URL}/api/v1/contest/moderators`,
     editModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
     deleteModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
+    getContestParticipants: `${API_BASE_URL}/api/v1/contest`, // We'll append contestId in the route
   },
   user: {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
     changePassword: `${API_BASE_URL}/api/v1/auth/change-password`, // This is correct based on controller
     getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`, // Add this line
     uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
+    getUserById: `${API_BASE_URL}/api/v1/user`, // Update this line - remove "auth/" from path
   },
   problem: {
     submit: `${API_BASE_URL}/api/v1/code/submit`,

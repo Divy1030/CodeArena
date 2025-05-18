@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
+// import Footer from '@/components/common/Footer';
 import Link from 'next/link';
 import ManageContestNavbar from '@/components/contest/Manage/ManageContestNavbar';
 
@@ -140,7 +140,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {children}
       </main>
       
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
