@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#121B38]">
       {/* Custom Navbar with logged-in state */}
       <Navbar 
         isAuthenticated={!!userData} 
