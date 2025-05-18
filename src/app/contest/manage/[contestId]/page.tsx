@@ -307,6 +307,8 @@ function ContestDetailsPage() {
             <Link 
               href={`/contest/${contestId}/preview-challenges`}
               className="px-4 py-2 bg-transparent text-gray-300 border border-gray-700 rounded-md hover:bg-[#1e293b] text-center"
+              target="_blank" // Add this to open in new tab
+              rel="noopener noreferrer" // Security best practice
             >
               Preview Challenges Page
             </Link>
