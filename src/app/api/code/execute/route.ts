@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
                  request.headers.get('authorization')?.replace('Bearer ', '');
     
     // Call backend API
-    const response = await fetch(endpoints.code.run, {
+    const response = await fetch(`${endpoints.code.runAllTestCases}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    console.log("Run API response status:", response.status);
+    console.log("Execute API response status:", response.status);
     
     // Check if the response is JSON
     const contentType = response.headers.get('content-type');
@@ -49,16 +49,16 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("Run API response data:", data);
+    console.log("Execute API response data:", data);
 
     return NextResponse.json({
       success: response.ok,
-      message: response.ok ? 'Code run successfully' : (data.message || 'Failed to run code'),
+      message: response.ok ? 'Code executed successfully' : (data.message || 'Failed to execute code'),
       data: data.data,
       statusCode: response.status
     });
   } catch (error) {
-    console.error('Error running code:', error);
+    console.error('Error executing code:', error);
     return NextResponse.json(
       { 
         success: false, 
