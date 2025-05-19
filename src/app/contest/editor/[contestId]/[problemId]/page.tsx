@@ -124,8 +124,30 @@ int main() {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const res = await fetch(`/api/problem/getProblem/${contestId}/${problemId}`);
+        // For debugging
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        console.log('Token available in localStorage:', !!token);
+        console.log('Attempting to fetch problem with contestId:', contestId, 'problemId:', problemId);
+        
+        // Add token to request headers if available
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const res = await fetch(`/api/problem/getProblem/${contestId}/${problemId}`, {
+          headers
+        });
+        
+        console.log('API response status:', res.status);
+        
+        // Check if the response is actually JSON
+        const contentType = res.headers.get('content-type');
+        console.log('Response content type:', contentType);
+        
         const data = await res.json();
+        console.log('Problem API response:', data);
+        
         if (data.statusCode === 200 && data.data) {
           const p = data.data;
           // Normalize constraints and testCases to arrays
@@ -178,6 +200,7 @@ int main() {
           setSelectedTestCase(null);
         }
       } catch (error) {
+        console.error('Error fetching problem:', error);
         setProblemData({
           title: "Error",
           difficulty: "N/A",
@@ -192,6 +215,7 @@ int main() {
         setSelectedTestCase(null);
       }
     };
+    
     if (contestId && problemId) fetchProblem();
   }, [contestId, problemId]);
 
@@ -246,51 +270,47 @@ int main() {
         testCases: formattedTestCases
       };
       
-      // Log the request payload
-      console.log('Sending code execution request:', requestPayload);
+      console.log('Running code with test cases:', formattedTestCases.length);
       
-      // Call the API
-      const response = await fetch('/api/code/execute', {
+      // Call the run API
+      const response = await fetch('/api/code/run', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         },
         body: JSON.stringify(requestPayload),
       });
       
-      console.log('API Response status:', response.status);
+      console.log('Run API Response status:', response.status);
       const result = await response.json();
-      console.log('API Response data:', result);
+      console.log('Run API Response data:', result);
       
       if (!result.success) {
         setExecutionError(result.message || 'Code execution failed');
-        // Reset test cases to pending
-        setTestCases(testCases.map(tc => ({...tc, status: 'pending', actualOutput: undefined})));
       } else {
-        setExecutionResult(result.data);
+        // Just store the execution result without updating test cases
+        const executionData = result.data || {};
+        const results = Array.isArray(executionData.results) ? executionData.results : [];
         
-        // Update test cases with results
-        const updatedTestCases = testCases.map((tc, index) => {
-          // Find the matching result by index
-          const resultData = result.data.results[index];
-          
-          return {
-            ...tc,
-            status: resultData.passed ? 'passed' : 'failed',
-            actualOutput: resultData.actualOutput,
-            time: resultData.time,
-            memory: resultData.memory
-          } as TestCase;
+        // Calculate if all tests passed
+        const totalTests = testCases.length;
+        const passedTests: number = results.filter((r: { 
+          status?: string; 
+          passed?: boolean; 
+        }) => r.status === 'Accepted' || r.passed === true).length;
+        const allPassed = passedTests === totalTests;
+        
+        setExecutionResult({
+          allPassed,
+          results: results
         });
         
-        setTestCases(updatedTestCases);
-        
-        // Update selected test case if it's in the results
-        if (selectedTestCase) {
-          const updatedSelectedTestCase = updatedTestCases.find(tc => tc.id === selectedTestCase.id);
-          if (updatedSelectedTestCase) {
-            setSelectedTestCase(updatedSelectedTestCase);
-          }
+        // Display a simple success message
+        if (allPassed) {
+          console.log('All tests passed!');
+        } else {
+          console.log(`${passedTests} of ${totalTests} tests passed.`);
         }
       }
     } catch (error) {
@@ -312,11 +332,12 @@ int main() {
         expectedOutput: tc.expectedOutput
       }));
       
-      // Call the API
-      const response = await fetch('/api/code/execute', {
+      // First, execute the code against all test cases
+      const executeResponse = await fetch('/api/code/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         },
         body: JSON.stringify({
           code,
@@ -325,39 +346,55 @@ int main() {
         }),
       });
       
-      const result = await response.json();
+      const executeResult = await executeResponse.json();
+      console.log('Execute API Response:', executeResult);
       
-      if (!result.success) {
-        setExecutionError(result.message || 'Submission failed');
-      } else {
-        setExecutionResult(result.data);
-        
-        // Update test cases with results
-        const updatedTestCases = testCases.map((tc, index) => {
-          const resultData = result.data.results[index];
-          return {
-            ...tc,
-            status: resultData.passed ? 'passed' : 'failed',
-            actualOutput: resultData.actualOutput,
-            time: resultData.time,
-            memory: resultData.memory
-          } as TestCase;
+      if (!executeResult.success) {
+        setExecutionError(executeResult.message || 'Execution failed');
+        return;
+      }
+      
+      // Simplify - just check if tests passed without updating UI
+      const executionData = executeResult.data || {};
+      const results = Array.isArray(executionData.results) ? executionData.results : [];
+      
+      // Calculate if all tests passed
+      const totalTests = testCases.length;
+      const passedTests: number = results.filter((r: { 
+        status?: string; 
+        passed?: boolean; 
+      }) => r.status === 'Accepted' || r.passed === true).length;
+      const allPassed = passedTests === totalTests;
+      
+      // If all tests passed, submit the solution to the problem
+      if (allPassed) {
+        // Call the submit API to record the solution
+        const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          },
+          body: JSON.stringify({
+            score: 100, // Always 100 if all tests passed
+            solutionCode: code,
+            languageUsed: languageName,
+            timeOccupied: results[0]?.time || '0.00',
+            memoryOccupied: results[0]?.memory || 0,
+            timeGivenOnSolution: (new Date().getTime() - new Date(problemData.startTime || Date.now()).getTime()) / 1000
+          }),
         });
         
-        setTestCases(updatedTestCases);
+        const submitResult = await submitResponse.json();
+        console.log('Submit API Response:', submitResult);
         
-        // Auto-select the first failed test case or keep current selection
-        const failedTestCase = updatedTestCases.find(tc => tc.status === 'failed');
-        if (failedTestCase) {
-          setSelectedTestCase(failedTestCase);
-        }
-        
-        // Show alert with submission result
-        if (result.data.allPassed) {
-          alert('Congratulations! All test cases passed. Your solution has been submitted.');
+        if (submitResult.success) {
+          alert('Congratulations! Your solution has been submitted successfully.');
         } else {
-          alert('Some test cases failed. Please review your solution and try again.');
+          setExecutionError(submitResult.message || 'Submission failed');
         }
+      } else {
+        alert(`Your solution passed ${passedTests} out of ${totalTests} test cases. Please fix your code and try again.`);
       }
     } catch (error) {
       console.error('Error submitting solution:', error);

@@ -58,10 +58,14 @@ const endpoints = {
     getUserById: `${API_BASE_URL}/api/v1/user`, // Update this line - remove "auth/" from path
   },
   problem: {
-    submit: `${API_BASE_URL}/api/v1/code/submit`,
+    submit: `${API_BASE_URL}/api/v1/problem/submit-solution`,
     run: `${API_BASE_URL}/api/v1/code/run`,
     getProblemById: `${API_BASE_URL}/api/v1/problem/get-problem`,
   },
+  code: {
+    run: `${API_BASE_URL}/api/v1/code/execute`,
+    runAllTestCases: `${API_BASE_URL}/api/v1/code/execute-all`,
+  }
 };
 
 export default endpoints;

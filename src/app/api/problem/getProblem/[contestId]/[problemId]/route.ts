@@ -72,6 +72,8 @@ export async function GET(
 ) {
   try {
     const { contestId, problemId } = params;
+    
+    console.log('API route called with contestId:', contestId, 'problemId:', problemId);
 
     if (!contestId || !problemId) {
       return NextResponse.json(
@@ -80,21 +82,25 @@ export async function GET(
       );
     }
 
-    // Get token from cookies or authorization header
-    const token = request.cookies.get('accessToken')?.value ||
+    // Get token from localStorage or cookies
+    const token = request.cookies.get('accessToken')?.value || 
+                  request.headers.get('Authorization')?.replace('Bearer ', '') ||
                   request.headers.get('authorization')?.replace('Bearer ', '');
+    
+    console.log('Token available:', !!token);
 
     if (!token) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
+        { success: false, message: 'Unauthorized - No token provided' },
         { status: 401 }
       );
     }
 
-    // Build backend URL with path params
+    // Update to use query params instead of path params
     const backendUrl = `${endpoints.problem.getProblemById}/${contestId}/${problemId}`;
+    console.log('Calling backend URL:', backendUrl);
 
-    // Proxy the request to the backend
+    // Make the request with better error handling
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
@@ -104,6 +110,20 @@ export async function GET(
       cache: "no-store",
     });
 
+    console.log('Backend response status:', response.status);
+
+    // Check content type before trying to parse JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      console.error('Non-JSON response received:', text.substring(0, 500));
+      return NextResponse.json(
+        { success: false, message: 'Backend returned non-JSON response', details: text.substring(0, 500) },
+        { status: 500 }
+      );
+    }
+
+    // Parse the JSON response
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
