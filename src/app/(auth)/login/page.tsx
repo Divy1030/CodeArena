@@ -11,7 +11,7 @@ export default function Login() {
       <AuthForm type="login" />
       
       <p className="mt-4 text-sm">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link href="/register" className="text-blue-600 hover:underline">
           Sign up
         </Link>

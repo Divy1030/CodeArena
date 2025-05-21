@@ -257,20 +257,18 @@ int main() {
     setExecutionError(null);
     
     try {
-      // Format test cases for the API
+      // Format test cases
       const formattedTestCases = testCases.map(tc => ({
         input: tc.input,
-        expectedOutput: tc.expectedOutput
+        output: tc.expectedOutput // This is correct
       }));
       
-      // Create the request payload
+      // Create request payload
       const requestPayload = {
         code,
         language: languageName,
         testCases: formattedTestCases
       };
-      
-      console.log('Running code with test cases:', formattedTestCases.length);
       
       // Call the run API
       const response = await fetch('/api/code/run', {
@@ -282,16 +280,18 @@ int main() {
         body: JSON.stringify(requestPayload),
       });
       
-      console.log('Run API Response status:', response.status);
+      // Process response
       const result = await response.json();
       console.log('Run API Response data:', result);
       
       if (!result.success) {
         setExecutionError(result.message || 'Code execution failed');
       } else {
-        // Just store the execution result without updating test cases
+        // Update accessing the correct path for test case results
         const executionData = result.data || {};
-        const results = Array.isArray(executionData.results) ? executionData.results : [];
+        
+        // Handle the response format from your API which has testCases array
+        const results = Array.isArray(executionData.testCases) ? executionData.testCases : [];
         
         // Calculate if all tests passed
         const totalTests = testCases.length;
@@ -301,10 +301,37 @@ int main() {
         }) => r.status === 'Accepted' || r.passed === true).length;
         const allPassed = passedTests === totalTests;
         
+        // Update the execution result with the transformed format
         setExecutionResult({
           allPassed,
-          results: results
+          results: results.map((r: any, idx: number) => ({
+            testCase: idx + 1,
+            input: r.input || testCases[idx]?.input || '',
+            expectedOutput: r.expectedOutput || testCases[idx]?.expectedOutput || '',
+            actualOutput: r.actualOutput || r.output || '',
+            passed: r.passed || r.status === 'Accepted',
+            stderr: r.stderr || null,
+            status: r.status || (r.passed ? 'Accepted' : 'Wrong Answer'),
+            time: r.time || '0.00',
+            memory: r.memory || 0
+          }))
         });
+        
+        // Also update the test cases with the results
+        setTestCases(prevTestCases => 
+          prevTestCases.map((tc, idx) => {
+            const result = results[idx];
+            if (!result) return tc;
+            
+            return {
+              ...tc,
+              actualOutput: result.actualOutput || result.output || '',
+              status: (result.passed || result.status === 'Accepted') ? 'passed' : 'failed',
+              time: result.time,
+              memory: result.memory
+            };
+          })
+        );
         
         // Display a simple success message
         if (allPassed) {
