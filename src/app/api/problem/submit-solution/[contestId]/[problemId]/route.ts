@@ -53,17 +53,18 @@ export async function POST(
       body: JSON.stringify(body),
     });
 
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const textResponse = await response.text();
-      console.error('Non-JSON response:', textResponse);
-      return NextResponse.json(
-        { success: false, message: 'Backend returned non-JSON response' },
-        { status: 500 }
-      );
-    }
+    // const contentType = response.headers.get('content-type');
+    // if (!contentType || !contentType.includes('application/json')) {
+    //   const textResponse = await response.text();
+    //   console.error('Non-JSON response:', textResponse);
+    //   return NextResponse.json(
+    //     { success: false, message: 'Backend returned non-JSON response', backend: textResponse },
+    //     { status: 500 }
+    //   );
+    // }
 
     const data = await response.json();
+    console.log("Data received from backend:", data);
 
     return NextResponse.json({
       success: response.ok,

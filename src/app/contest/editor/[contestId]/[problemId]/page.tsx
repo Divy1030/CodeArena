@@ -396,21 +396,31 @@ int main() {
       // If all tests passed, submit the solution to the problem
       if (allPassed) {
         // Call the submit API to record the solution
-        const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-          },
-          body: JSON.stringify({
-            score: 100, // Always 100 if all tests passed
-            solutionCode: code,
-            languageUsed: languageName,
-            timeOccupied: results[0]?.time || '0.00',
-            memoryOccupied: results[0]?.memory || 0,
-            timeGivenOnSolution: (new Date().getTime() - new Date(problemData.startTime || Date.now()).getTime()) / 1000
-          }),
-        });
+          const memoryOccupied =
+  results && results.length > 0 && results[0].memory !== undefined && results[0].memory !== null
+    ? Number(results[0].memory)
+    : 1; // fallback to 1 if missing
+
+const timeOccupied =
+  results && results.length > 0 && results[0].time !== undefined && results[0].time !== null
+    ? Number(results[0].time)
+    : 1; // fallback to 1 if missing
+
+const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+  },
+  body: JSON.stringify({
+    score: 100,
+    solutionCode: code,
+    languageUsed: languageName,
+    timeOccupied,
+    memoryOccupied,
+    timeGivenOnSolution: (new Date().getTime() - new Date(problemData.startTime || Date.now()).getTime()) / 1000
+  }),
+});
         
         const submitResult = await submitResponse.json();
         console.log('Submit API Response:', submitResult);
