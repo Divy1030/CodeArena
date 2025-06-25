@@ -30,13 +30,31 @@ interface ContestData {
   hasJoined?: boolean;
 }
 
+// TypeScript interface for user data
+interface UserData {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  role?: string;
+  profile?: {
+    name?: string;
+    institution?: string;
+    country?: string;
+    bio?: string;
+    avatarUrl?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const UserHome: React.FC = () => {
   const router = useRouter();
   const [contests, setContests] = useState<ContestData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'live' | 'past'>('upcoming');
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [joiningContestId, setJoiningContestId] = useState<string | null>(null);
 
   useEffect(() => {

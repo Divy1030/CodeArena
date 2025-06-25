@@ -9,6 +9,8 @@ import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileActivity from '@/components/profile/ProfileActivity';
 import SecuritySettings from '@/components/profile/SecuritySettings';
 import ManageableContests from '@/components/profile/ManageableContests';
+import SocialFeatures from '@/components/profile/SocialFeatures';
+import FollowingList from '@/components/profile/FollowingList';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const UserProfilePage = () => {
@@ -134,7 +136,6 @@ const UserProfilePage = () => {
         localStorage.removeItem('userData');
         localStorage.removeItem('isAdmin');
         
-        // toast.warning('Local session ended. Server logout failed.');
         router.push('/login');
       }
     } catch (err) {
@@ -146,7 +147,6 @@ const UserProfilePage = () => {
       localStorage.removeItem('userData');
       localStorage.removeItem('isAdmin');
       
-      // toast.warning('Local session ended. Server logout failed.');
       router.push('/login');
     }
   };
@@ -206,6 +206,12 @@ const UserProfilePage = () => {
                   ) : (
                     <SecuritySettings onPasswordChange={handlePasswordChange} />
                   )}
+                  
+                  {/* Following/Followers List */}
+                  <FollowingList userData={userData} />
+                  
+                  {/* Social Features - Search and Suggested Users */}
+                  <SocialFeatures currentUserId={userData._id} />
                   
                   {/* Manageable Contests */}
                   <ManageableContests userId={userData._id} />

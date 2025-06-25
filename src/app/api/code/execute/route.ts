@@ -1,12 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 
+// Define interfaces for type safety
+interface TestCase {
+  input: string;
+  expectedOutput?: string;
+  output?: string;
+}
+
+interface RequestBody {
+  code: string;
+  language: string;
+  testCases: TestCase[];
+}
+
+interface BackendTestCaseResult {
+  input?: string;
+  expectedOutput?: string;
+  actualOutput?: string;
+  output?: string;
+  passed?: boolean;
+  status?: string;
+  stderr?: string | null;
+  time?: string;
+  memory?: number;
+}
+
+interface BackendResponseData {
+  results?: BackendTestCaseResult[];
+  score?: number;
+  passedTests?: number;
+  totalTests?: number;
+}
+
+interface BackendResponse {
+  data?: BackendResponseData;
+  message?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log("FRONTEND API EXECUTE ROUTE - Starting code execution for all test cases");
     
     // Parse request body with error handling
-    let body;
+    let body: RequestBody;
     try {
       body = await request.json();
       console.log("FRONTEND API EXECUTE ROUTE - Request body parsed successfully");
@@ -40,7 +77,7 @@ export async function POST(request: NextRequest) {
     // Transform the request body - make sure we use expectedOutput for the execute-all endpoint
     const transformedBody = {
       ...body,
-      testCases: body.testCases.map((tc: any) => ({
+      testCases: body.testCases.map((tc: TestCase) => ({
         input: tc.input,
         output: tc.expectedOutput || tc.output // Make sure we send expectedOutput
       }))
@@ -66,7 +103,7 @@ export async function POST(request: NextRequest) {
         console.error(`FRONTEND API EXECUTE ROUTE - Backend API returned error ${response.status}`);
       }
       
-      let responseData;
+      let responseData: BackendResponse;
       try {
         responseData = await response.json();
         console.log("FRONTEND API EXECUTE ROUTE - Response data:", JSON.stringify(responseData).substring(0, 200) + "...");
@@ -84,7 +121,7 @@ export async function POST(request: NextRequest) {
         success: response.ok,
         message: response.ok ? 'Code executed successfully' : (responseData.message || 'Failed to execute code'),
         data: {
-          results: responseData.data?.results?.map((tc: any, idx: number) => ({
+          results: responseData.data?.results?.map((tc: BackendTestCaseResult, idx: number) => ({
             testCase: idx + 1,
             input: tc.input || body.testCases[idx]?.input || '',
             expectedOutput: tc.expectedOutput || body.testCases[idx]?.expectedOutput || '',

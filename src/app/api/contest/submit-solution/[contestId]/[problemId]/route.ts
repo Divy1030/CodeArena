@@ -22,7 +22,8 @@ export async function POST(req: NextRequest, { params }: { params: { contestId: 
     const data = await backendRes.json();
 
     return NextResponse.json(data, { status: backendRes.status });
-  } catch (error) {
+  } catch (err) {
+    console.error('Submit solution error:', err);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

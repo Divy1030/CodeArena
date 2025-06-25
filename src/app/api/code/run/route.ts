@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 
+// Define interfaces for type safety
+interface TestCase {
+  input: string;
+  expectedOutput?: string;
+  output?: string;
+}
+
+interface RequestBody {
+  code: string;
+  language: string;
+  testCases: TestCase[];
+}
+
+interface BackendResponse {
+  data?: unknown;
+  message?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log("FRONTEND API ROUTE - Starting code execution");
     
     // Parse request body with error handling
-    let body;
+    let body: RequestBody;
     try {
       body = await request.json();
       console.log("FRONTEND API ROUTE - Request body parsed successfully");
@@ -40,7 +58,7 @@ export async function POST(request: NextRequest) {
     // Transform the request body
     const transformedBody = {
       ...body,
-      testCases: body.testCases.map((tc: any) => ({
+      testCases: body.testCases.map((tc: TestCase) => ({
         input: tc.input,
         output: tc.expectedOutput || tc.output // Handle both formats
       }))
@@ -66,7 +84,7 @@ export async function POST(request: NextRequest) {
         console.error(`FRONTEND API ROUTE - Backend API returned error ${response.status}`);
       }
       
-      let responseData;
+      let responseData: BackendResponse;
       try {
         responseData = await response.json();
         console.log("FRONTEND API ROUTE - Response data:", JSON.stringify(responseData).substring(0, 200) + "...");

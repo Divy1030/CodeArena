@@ -23,13 +23,13 @@ const ProfileActivity: React.FC<ProfileActivityProps> = ({ user }) => {
             <h3 className="text-lg font-medium mb-4">Recent Contests</h3>
             {recentContests.length > 0 ? (
               <div className="space-y-4">
-                {recentContests.map((contest: any) => (
+                {recentContests.map((contest: any, index: number) => (
                   <div 
-                    key={contest.contestId?._id || contest.contestId} 
+                    key={contest.contestId?._id || contest.contestId || `contest-${index}`}
                     className="p-3 bg-[#0f172a] rounded-lg flex justify-between items-center"
                   >
                     <div>
-                      <h4 className="font-medium">{contest.contestId?.title || "Unknown Contest"}</h4>
+                      <h4 className="font-medium">{contest.contestId?.title || contest.title || "Unknown Contest"}</h4>
                       <div className="flex items-center text-xs text-gray-400 mt-1">
                         <Calendar className="w-3 h-3 mr-1" />
                         {contest.joinedAt ? format(new Date(contest.joinedAt), 'MMM dd, yyyy') : 'N/A'}
@@ -59,17 +59,17 @@ const ProfileActivity: React.FC<ProfileActivityProps> = ({ user }) => {
             <h3 className="text-lg font-medium mb-4">Recently Solved Problems</h3>
             {recentProblems.length > 0 ? (
               <div className="space-y-4">
-                {recentProblems.map((problem: any) => (
+                {recentProblems.map((problem: any, index: number) => (
                   <div 
-                    key={problem.problemId?._id || problem.problemId} 
+                    key={problem.problemId?._id || problem.problemId || `problem-${index}`}
                     className="p-3 bg-[#0f172a] rounded-lg flex justify-between items-center"
                   >
                     <div>
-                      <h4 className="font-medium">{problem.problemId?.title || "Unknown Problem"}</h4>
+                      <h4 className="font-medium">{problem.problemId?.title || problem.title || "Unknown Problem"}</h4>
                       <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
                         <div className="flex items-center">
                           <Tag className="w-3 h-3 mr-1" />
-                          {problem.problemId?.difficulty || 'Medium'}
+                          {problem.problemId?.difficulty || problem.difficulty || 'Medium'}
                         </div>
                         <div className="flex items-center">
                           <Clock className="w-3 h-3 mr-1" />
