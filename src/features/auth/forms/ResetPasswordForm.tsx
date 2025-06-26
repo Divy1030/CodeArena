@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,14 +28,9 @@ export default function ResetPasswordForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || localStorage.getItem('resetEmail') || '';
-
-  // If no email in URL or localStorage, redirect to forgot password
-  if (!email) {
-    router.push('/auth/forgot-password');
-    return null;
-  }
-
+  const [email, setEmail] = useState<string>("");
+  
+  // Initialize useForm hook at the top level - not inside conditionals
   const { control, handleSubmit } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
@@ -44,6 +39,22 @@ export default function ResetPasswordForm() {
     },
     mode: "onChange",
   });
+
+  // Move the email check to useEffect
+  useEffect(() => {
+    const emailValue = searchParams.get('email') || localStorage.getItem('resetEmail') || '';
+    setEmail(emailValue);
+    
+    // If no email in URL or localStorage, redirect to forgot password
+    if (!emailValue) {
+      router.push('/auth/forgot-password');
+    }
+  }, [router, searchParams]);
+
+  // If no email, render nothing while the redirect happens
+  if (!email) {
+    return null;
+  }
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     setIsSubmitting(true);

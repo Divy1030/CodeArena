@@ -4,8 +4,21 @@ import { Card, CardContent } from '@/components/ui/dashboard/Card';
 import { ProgrammingLanguageChart } from './charts/ProgrammingLanguageChart';
 import { PerformanceChart } from './charts/PerformanceChart';
 
+// Define a proper interface for the user object instead of using 'any'
+interface UserProfile {
+  _id?: string;
+  username?: string;
+  email?: string;
+  profilePicture?: string;
+  rating?: number;
+  contestsParticipated?: Array<any>; // We could further type this if needed
+  solvedProblems?: Array<any>; // We could further type this if needed
+  rank?: string | number;
+  [key: string]: any; // Allow other properties we might not explicitly define
+}
+
 interface ProfileStatsProps {
-  user: any;
+  user: UserProfile;
 }
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ user }) => {
@@ -16,7 +29,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ user }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard 
           icon={<Trophy className="text-yellow-500" />}
-          value={user.rating}
+          value={user.rating || 0}
           label="Rating"
         />
         <StatCard 

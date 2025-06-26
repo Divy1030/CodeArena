@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
-import Image from "next/image";
+// import Image from "next/image";
 import RotatingText from "@/components/bits/RotatingText";
 import Hyperspeed from "@/components/bits/HyperSpeed";
 

@@ -2,8 +2,8 @@ import * as React from "react";
 
 import { cn } from "@/utils/utils";
 
-// Define common props that all card components will share
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+// Change the empty interface to a type alias
+type CardProps = React.HTMLAttributes<HTMLDivElement>;
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, ...props }, ref) => (
