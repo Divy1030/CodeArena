@@ -34,6 +34,8 @@ function ContestPreviewPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [contest, setContest] = useState<ContestData | null>(null);
+  // Rename 'error' to '_error' to indicate it's intentionally unused
+  const [_error, setError] = useState("");
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -59,7 +61,8 @@ function ContestPreviewPage() {
     }
   }, [contestId]);
 
-  const formatDate = (dateString: string) => {
+  // Mark formatDate as unused with underscore prefix
+  const _formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric',
@@ -83,7 +86,7 @@ function ContestPreviewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-12">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Contest not found</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">The contest you're looking for doesn't exist or you don't have permission to view it.</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">The contest you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.</p>
         <Link href="/contests" className="mt-4 text-blue-500 hover:underline">
           Back to contests
         </Link>

@@ -1,13 +1,21 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
-import { LogOut, Edit, Shield } from 'lucide-react';
-import { Button } from '@/components/ui/dashboard/button';
+// Remove unused imports
 import ProfilePictureUpload from '../profile/ProfilePictureUpload';
 
+// Define a proper interface for admin data
+interface AdminData {
+  _id?: string;
+  username?: string;
+  email?: string;
+  profilePicture?: string;
+  role?: string;
+  createdAt?: string;
+}
+
 interface AdminProfileHeaderProps {
-  admin: any;
+  admin: AdminData;
   onLogout: () => Promise<void>;
   onProfileUpdate?: (newImageUrl: string) => void;
 }
@@ -17,8 +25,8 @@ const AdminProfileHeader: React.FC<AdminProfileHeaderProps> = ({
   onLogout,
   onProfileUpdate 
 }) => {
-  // Get first letter of username for avatar fallback
-  const adminInitial = admin.username ? admin.username[0].toUpperCase() : 'A';
+  // We'll comment this out since it's not being used
+  // const adminInitial = admin.username ? admin.username[0].toUpperCase() : 'A';
   
   return (
     <div className="bg-[#121B38] border border-gray-700 rounded-xl p-6">
@@ -26,7 +34,7 @@ const AdminProfileHeader: React.FC<AdminProfileHeaderProps> = ({
         {/* Profile Picture with Upload functionality */}
         <ProfilePictureUpload 
           currentImage={admin.profilePicture} 
-          username={admin.username}
+          username={admin.username || 'Admin'}
           onUpdate={(newImageUrl) => {
             if (onProfileUpdate) {
               onProfileUpdate(newImageUrl);
@@ -54,7 +62,7 @@ const AdminProfileHeader: React.FC<AdminProfileHeaderProps> = ({
           </p>
           
           <p className="text-gray-400 mt-1">
-            Member since {new Date(admin.createdAt).toLocaleDateString()}
+            Member since {new Date(admin.createdAt || '').toLocaleDateString()}
           </p>
         </div>
         

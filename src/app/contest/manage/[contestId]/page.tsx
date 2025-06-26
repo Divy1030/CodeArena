@@ -34,8 +34,9 @@ function ContestDetailsPage() {
   const [contest, setContest] = useState<ContestData | null>(null);
   const [contestTitle, setContestTitle] = useState("");
   const [contestDescription, setContestDescription] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  // Add underscore to indicate variables are intentionally unused
+  const [_startTime, _setStartTime] = useState("");
+  const [_endTime, _setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTimeOnly, setStartTimeOnly] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -83,7 +84,8 @@ function ContestDetailsPage() {
       } else {
         toast.error("Failed to load contest details");
       }
-    } catch (error) {
+    } catch (_error) {
+      // Renamed to _error to indicate it's intentionally unused
       toast.error("Error fetching contest details");
     } finally {
       setIsLoading(false);
@@ -94,9 +96,10 @@ function ContestDetailsPage() {
     if (contestId) {
       fetchContest();
     }
-  }, [contestId]);
+  }, [contestId, fetchContest]); // Added fetchContest to dependencies
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Renamed to _handleImageChange to indicate it's intentionally unused
+  const _handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setLandingPageImage(e.target.files[0]);
     }
