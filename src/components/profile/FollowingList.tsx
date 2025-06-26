@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import { FaUsers, FaUser, FaUserFriends } from 'react-icons/fa';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import React, { useState } from 'react';
+import { FaUserFriends } from 'react-icons/fa';
+import Image from 'next/image';
 
 interface User {
   _id: string;
@@ -13,8 +12,13 @@ interface User {
   lastName?: string;
 }
 
+interface UserDataProfile {
+  followers?: User[];
+  following?: User[];
+}
+
 interface FollowingListProps {
-  userData: any;
+  userData: UserDataProfile;
 }
 
 const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
@@ -23,15 +27,19 @@ const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
   const followers = userData?.followers || [];
   const following = userData?.following || [];
 
-  const UserCard: React.FC<{ user: User; index: number }> = ({ user, index }) => (
+  const UserCard: React.FC<{ user: User }> = ({ user }) => (
     <div className="flex items-center space-x-3 p-3 bg-[#1a2332] rounded-lg hover:bg-[#1e2738] transition-colors">
       <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
         {user.profilePicture ? (
-          <img 
-            src={user.profilePicture} 
-            alt={user.username}
-            className="w-full h-full object-cover"
-          />
+          <div className="relative w-full h-full">
+            <Image 
+              src={user.profilePicture} 
+              alt={user.username}
+              fill
+              sizes="40px"
+              className="object-cover"
+            />
+          </div>
         ) : (
           <span className="text-white font-semibold text-sm">
             {(user.firstName?.charAt(0) || user.username?.charAt(0) || 'U').toUpperCase()}
@@ -98,11 +106,11 @@ const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
           <>
             {following.length > 0 ? (
               following.map((user: User, index: number) => (
-                <UserCard key={user._id || `following-${index}`} user={user} index={index} />
+                <UserCard key={user._id || `following-${index}`} user={user} />
               ))
             ) : (
               <p className="text-gray-400 text-center py-4 text-sm">
-                You're not following anyone yet.
+                You&apos;re not following anyone yet.
               </p>
             )}
           </>
@@ -112,7 +120,7 @@ const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
           <>
             {followers.length > 0 ? (
               followers.map((user: User, index: number) => (
-                <UserCard key={user._id || `follower-${index}`} user={user} index={index} />
+                <UserCard key={user._id || `follower-${index}`} user={user} />
               ))
             ) : (
               <p className="text-gray-400 text-center py-4 text-sm">

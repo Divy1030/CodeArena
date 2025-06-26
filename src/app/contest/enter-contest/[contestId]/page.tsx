@@ -3,6 +3,32 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
+// Define interface for contest data
+interface ContestData {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  participants?: {
+    userId: string;
+    joinedAt: string;
+  }[];
+  problems?: {
+    _id: string;
+    title: string;
+  }[];
+  isRated?: boolean;
+  tags?: string[];
+  rules?: string;
+  scoring?: string;
+  backgroundImage?: string;
+  submissions?: unknown[];
+  totalScore?: number;
+  score?: number;
+  rank?: string | number;
+}
 
 function formatTime(ms: number) {
   if (ms <= 0) return "00:00:00";
@@ -35,12 +61,13 @@ const EnterContestPage = () => {
   const params = useParams();
   const router = useRouter();
   const contestId = params?.contestId as string;
-  const [contest, setContest] = useState<any>(null);
+  const [contest, setContest] = useState<ContestData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState("");
   const [timerLabel, setTimerLabel] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // We'll keep this variable but mark it with an underscore to indicate it's intentionally unused
+  const [_isAuthenticated, setIsAuthenticated] = useState(false);
   const [countdownValues, setCountdownValues] = useState({
     days: 0,
     hours: 0,
@@ -68,7 +95,8 @@ const EnterContestPage = () => {
         } else {
           setError(data.message || "Failed to fetch contest details.");
         }
-      } catch (err) {
+      } catch (error) {
+        console.error("Error fetching contest details:", error);
         setError("Error fetching contest details.");
       } finally {
         setLoading(false);
@@ -286,8 +314,8 @@ const EnterContestPage = () => {
             ) : (
               <ul className="list-disc pl-5 space-y-2 text-gray-300">
                 <li>Each challenge has a pre-determined score.</li>
-                <li>A participant's score depends on the number of test cases a participant's code submission successfully passes.</li>
-                <li>If a participant submits more than one solution per challenge, then the participant's score will reflect the highest score achieved. In a game challenge, the participant's score will reflect the last code submission.</li>
+                <li>A participant&apos;s score depends on the number of test cases a participant&apos;s code submission successfully passes.</li>
+                <li>If a participant submits more than one solution per challenge, then the participant&apos;s score will reflect the highest score achieved. In a game challenge, the participant&apos;s score will reflect the last code submission.</li>
                 <li>Participants are ranked by score. If two or more participants achieve the same score, then the tie is broken by the total time taken to submit the last solution resulting in a higher score.</li>
               </ul>
             )}

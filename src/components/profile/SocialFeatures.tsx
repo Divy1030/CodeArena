@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaSearch, FaUserPlus, FaUserMinus, FaUsers } from 'react-icons/fa';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Image from 'next/image';
 
 interface User {
   _id: string;
@@ -16,6 +17,10 @@ interface User {
 
 interface SocialFeaturesProps {
   currentUserId: string;
+}
+
+interface FetchError extends Error {
+  message: string;
 }
 
 const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
@@ -71,9 +76,10 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
       } else {
         toast.error(result.message || 'Failed to fetch suggested users');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching suggested users:', error);
-      toast.error(`Failed to load suggested users: ${error.message}`);
+      const fetchError = error as FetchError;
+      toast.error(`Failed to load suggested users: ${fetchError.message}`);
     } finally {
       setLoading(false);
     }
@@ -165,16 +171,20 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
     }
   };
 
-  const UserCard: React.FC<{ user: User; index: number }> = ({ user, index }) => (
+  const UserCard: React.FC<{ user: User; index: number }> = ({ user }) => (
     <div className="flex items-center justify-between p-4 bg-[#1a2332] rounded-lg hover:bg-[#1e2738] transition-colors">
       <div className="flex items-center space-x-3">
         <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
           {user.profilePicture ? (
-            <img 
-              src={user.profilePicture} 
-              alt={user.username}
-              className="w-full h-full object-cover"
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src={user.profilePicture}
+                alt={user.username}
+                fill
+                sizes="48px"
+                className="object-cover"
+              />
+            </div>
           ) : (
             <span className="text-white font-semibold text-lg">
               {(user.firstName?.charAt(0) || user.username?.charAt(0) || 'U').toUpperCase()}

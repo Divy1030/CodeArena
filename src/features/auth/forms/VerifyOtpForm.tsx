@@ -146,7 +146,8 @@ export default function VerifyOtpForm() {
                 } else {
                   setError(result.message || "Failed to resend verification code");
                 }
-              } catch (err) {
+              } catch (error) {
+                console.error('Error resending verification code:', error);
                 setError("Failed to resend verification code");
               } finally {
                 setIsSubmitting(false);
