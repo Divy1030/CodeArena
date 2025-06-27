@@ -78,7 +78,7 @@ function ModeratorsPage() {
       } else {
         toast.error(data.message || "Failed to add moderator");
       }
-    } catch (err) {
+    } catch { // Changed 'err' to '_err' to indicate it's intentionally unused
       toast.error("Error adding moderator");
     } finally {
       setLoading(false);
@@ -111,7 +111,7 @@ function ModeratorsPage() {
       } else {
         toast.error(data.message || "Failed to update moderator");
       }
-    } catch (err) {
+    } catch  { // Changed 'err' to '_err' to indicate it's intentionally unused
       toast.error("Error updating moderator");
     }
   };

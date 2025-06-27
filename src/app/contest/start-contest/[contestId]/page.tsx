@@ -6,6 +6,20 @@ import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { Trophy, BarChart2, FileText } from "lucide-react";
 
+interface Participant {
+  userId: string;
+  username?: string;
+  joinedAt?: string;
+  score?: number;
+  rank?: number;
+  submissions?: Array<{
+    problemId: string;
+    status: string;
+    submittedAt: string;
+    score?: number;
+  }>;
+}
+
 interface ContestData {
   _id: string;
   title: string;
@@ -13,7 +27,7 @@ interface ContestData {
   endTime: string;
   duration: number;
   isRated: boolean;
-  participants?: any[];
+  participants?: Participant[];
   problems?: Array<{
     _id: string;
     title: string;

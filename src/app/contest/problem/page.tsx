@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import QuestionRow from '@/components/contest/QuestionRow';
 
+// Define interfaces for the data structures
 interface Question {
   id: number;
   title: string;
@@ -10,9 +11,18 @@ interface Question {
   description?: string;
 }
 
+interface ContestData {
+  id: string;
+  title: string;
+  description: string;
+  timeRemaining: string;
+  questions: Question[];
+}
+
 const ContestProblemPage: React.FC = () => {
-  const [activeQuestion, setActiveQuestion] = useState<number>(1);
-  const [contestData, setContestData] = useState<any>(null);
+  // Keep activeQuestion state as it's used in handleSolve
+  const [, setActiveQuestion] = useState<number>(1);
+  const [contestData, setContestData] = useState<ContestData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
   // Get the contest ID from the URL
@@ -28,7 +38,7 @@ const ContestProblemPage: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Demo data based on contest ID
-      const data = {
+      const data: ContestData = {
         id: contestId,
         title: contestId === 'contest-123' ? 'Algorithm Challenge' : 
                contestId === 'contest-120' ? 'Data Structures Showdown' : 
@@ -119,13 +129,13 @@ const ContestProblemPage: React.FC = () => {
         <div className="max-w-8xl mx-auto p-6 mt-14">
           {/* Contest Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">{contestData.title}</h1>
-            <p className="text-gray-400 mt-2">{contestData.description}</p>
+            <h1 className="text-3xl font-bold text-white">{contestData?.title}</h1>
+            <p className="text-gray-400 mt-2">{contestData?.description}</p>
             <div className="mt-4 flex items-center justify-between">
               <div className="text-blue-400">Contest ID: {contestId}</div>
               <div className="bg-gray-800 px-4 py-2 rounded-md">
                 <span className="text-white font-medium">Time Remaining: </span>
-                <span className="text-red-400 font-medium">{contestData.timeRemaining}</span>
+                <span className="text-red-400 font-medium">{contestData?.timeRemaining}</span>
               </div>
             </div>
           </div>

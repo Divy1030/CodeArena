@@ -1,16 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
+
+// Define interface for user data
+interface UserData {
+  username?: string;
+  profilePicture?: string;
+  role?: 'user' | 'admin' | string;
+  profile?: {
+    avatarUrl?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown; // For other potential properties
+}
 
 interface ContestLayoutProps {
   children: React.ReactNode;
 }
 
 export default function ContestLayout({ children }: ContestLayoutProps) {
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   
   useEffect(() => {
     // Get user data from localStorage

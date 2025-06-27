@@ -13,8 +13,38 @@ import SocialFeatures from '@/components/profile/SocialFeatures';
 import FollowingList from '@/components/profile/FollowingList';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
+// Define the interface for contest data
+interface Contest {
+  _id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  joinedAt?: string;
+  rank?: number | string;
+  score?: number;
+  [key: string]: unknown; // Add index signature for compatibility
+}
+
+// Define the interface for user data
+interface UserData {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  password?: string;
+  rating: number;
+  contestsParticipated?: Contest[];
+  solvedProblems?: Array<{
+    problemId?: { _id: string; title: string; difficulty?: string } | string;
+    solvedAt?: string;
+  }>;
+  following?: Array<{ _id: string; username?: string; profilePicture?: string }>;
+  followers?: Array<{ _id: string; username?: string; profilePicture?: string }>;
+  [key: string]: unknown; // For any other properties
+}
+
 const UserProfilePage = () => {
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();

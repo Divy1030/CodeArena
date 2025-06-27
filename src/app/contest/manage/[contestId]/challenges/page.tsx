@@ -622,7 +622,7 @@ function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {problems.map((problem, index) => (
+                  {problems.map((problem, ) => (
                     <tr 
                       key={problem._id} 
                       className="border-t border-gray-700 hover:bg-[#1a2540]"

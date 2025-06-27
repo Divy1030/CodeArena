@@ -4,17 +4,22 @@ import React, { useState } from 'react';
 import { FaUserFriends } from 'react-icons/fa';
 import Image from 'next/image';
 
+// Updated User interface to match what's coming from the parent component
 interface User {
   _id: string;
-  username: string;
+  userId?: string;  // Added to support both formats
+  username?: string;
   profilePicture?: string;
   firstName?: string;
   lastName?: string;
 }
 
+// Updated to match the parent component's structure
 interface UserDataProfile {
   followers?: User[];
   following?: User[];
+  _id?: string;
+  [key: string]: unknown; // For other properties
 }
 
 interface FollowingListProps {
@@ -24,6 +29,7 @@ interface FollowingListProps {
 const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
   const [activeTab, setActiveTab] = useState<'followers' | 'following'>('following');
 
+  // Handle both array formats
   const followers = userData?.followers || [];
   const following = userData?.following || [];
 
@@ -34,7 +40,7 @@ const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
           <div className="relative w-full h-full">
             <Image 
               src={user.profilePicture} 
-              alt={user.username}
+              alt={user.username || 'User'}
               fill
               sizes="40px"
               className="object-cover"
@@ -106,7 +112,7 @@ const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
           <>
             {following.length > 0 ? (
               following.map((user: User, index: number) => (
-                <UserCard key={user._id || `following-${index}`} user={user} />
+                <UserCard key={user._id || user.userId || `following-${index}`} user={user} />
               ))
             ) : (
               <p className="text-gray-400 text-center py-4 text-sm">
@@ -120,7 +126,7 @@ const FollowingList: React.FC<FollowingListProps> = ({ userData }) => {
           <>
             {followers.length > 0 ? (
               followers.map((user: User, index: number) => (
-                <UserCard key={user._id || `follower-${index}`} user={user} />
+                <UserCard key={user._id || user.userId || `follower-${index}`} user={user} />
               ))
             ) : (
               <p className="text-gray-400 text-center py-4 text-sm">

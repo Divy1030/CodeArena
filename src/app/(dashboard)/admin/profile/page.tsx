@@ -10,6 +10,22 @@ import AdminContests from '@/components/admin/AdminContests';
 import SecuritySettings from '@/components/profile/SecuritySettings';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
+interface Participant {
+  _id: string;
+  username: string;
+  email: string;
+}
+
+interface Contest {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  status?: string;
+  participants?: Participant[];
+}
+
 interface AdminData {
   _id: string;
   username: string;
@@ -17,7 +33,7 @@ interface AdminData {
   profilePicture?: string;
   password?: string;
   role: string;
-  contestsCreated?: unknown[];
+  contestsCreated?: Contest[];
   profile?: {
     name?: string;
     institution?: string;

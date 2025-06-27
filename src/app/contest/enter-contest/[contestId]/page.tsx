@@ -67,7 +67,7 @@ const EnterContestPage = () => {
   const [timer, setTimer] = useState("");
   const [timerLabel, setTimerLabel] = useState("");
   // We'll keep this variable but mark it with an underscore to indicate it's intentionally unused
-  const [_isAuthenticated, setIsAuthenticated] = useState(false);
+  const [, setIsAuthenticated] = useState(false);
   const [countdownValues, setCountdownValues] = useState({
     days: 0,
     hours: 0,

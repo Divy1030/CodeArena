@@ -34,8 +34,7 @@ function ContestPreviewPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [contest, setContest] = useState<ContestData | null>(null);
-  // Rename 'error' to '_error' to indicate it's intentionally unused
-  const [_error, setError] = useState("");
+  const [, setError] = useState("");
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -48,9 +47,11 @@ function ContestPreviewPage() {
           setContest(result.data);
         } else {
           toast.error("Failed to load contest details");
+          setError("Failed to load contest details");
         }
-      } catch (error) {
+      } catch  {
         toast.error("Error fetching contest details");
+        setError("Error fetching contest details");
       } finally {
         setIsLoading(false);
       }
@@ -60,19 +61,6 @@ function ContestPreviewPage() {
       fetchContest();
     }
   }, [contestId]);
-
-  // Mark formatDate as unused with underscore prefix
-  const _formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric', 
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
-  };
 
   if (isLoading) {
     return (

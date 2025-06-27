@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             // Defining type for a moderator which could be a string ID or an object with _id
             interface ModeratorObject {
               _id: string;
-              [key: string]: any; // Allow other properties
+              [key: string]: unknown; // Allow other properties
             }
             
             const isModerator: boolean = Array.isArray(result.data.moderators) && 
