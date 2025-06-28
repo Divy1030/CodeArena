@@ -1,6 +1,5 @@
 // Use the environment variable for the API base URL with fallback
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://code-arena-backend.onrender.com';
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://code-arena-backend.onrender.com';
 
 // Log the API URL for debugging
 console.log('Using API base URL:', API_BASE_URL);
