@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,16 +19,38 @@ export default function VerifyOtpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [purpose, setPurpose] = useState('registration');
+  
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
-  const purpose = searchParams.get('purpose') || 'registration'; // 'registration' or 'reset'
 
-  const { control, handleSubmit } = useForm<VerifyOtpFormData>({
+  // Handle search params in useEffect to avoid hydration issues
+  useEffect(() => {
+    const emailParam = searchParams.get('email') || '';
+    const purposeParam = searchParams.get('purpose') || 'registration';
+    
+    setEmail(emailParam);
+    setPurpose(purposeParam);
+    
+    // Redirect if no email is provided
+    if (!emailParam) {
+      router.push('/login');
+    }
+  }, [searchParams, router]);
+
+  const { control, handleSubmit, setValue } = useForm<VerifyOtpFormData>({
     resolver: zodResolver(VerifyOtpSchema),
-    defaultValues: { email, otp: "" },
+    defaultValues: { email: "", otp: "" },
     mode: "onChange",
   });
+
+  // Update form email when email state changes
+  useEffect(() => {
+    if (email) {
+      setValue('email', email);
+    }
+  }, [email, setValue]);
 
   const onSubmit = async (data: VerifyOtpFormData) => {
     setIsSubmitting(true);
@@ -76,10 +98,56 @@ export default function VerifyOtpForm() {
     }
   };
 
+  const handleResendCode = async () => {
+    if (!email) return;
+    
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      setSuccess(null);
+      
+      const endpoint = purpose === 'reset'
+        ? '/api/auth/forgot-password'
+        : '/api/auth/resend-otp';
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setSuccess("Verification code resent. Please check your email.");
+      } else {
+        setError(result.message || "Failed to resend verification code");
+      }
+    } catch (error) {
+      console.error('Error resending verification code:', error);
+      setError("Failed to resend verification code");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const title = purpose === 'reset' ? 'Verify Password Reset Code' : 'Verify Email';
   const description = purpose === 'reset' 
     ? 'Please enter the verification code sent to your email to reset your password.'
     : 'Please enter the verification code sent to your email to verify your account.';
+
+  // Don't render form until we have email from search params
+  if (!email) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-8 bg-gray-200 rounded mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded mb-6"></div>
+        <div className="h-10 bg-gray-200 rounded mb-4"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
@@ -124,36 +192,9 @@ export default function VerifyOtpForm() {
       <div className="text-center">
         <button 
           type="button"
-          onClick={async () => {
-            if (email) {
-              try {
-                setIsSubmitting(true);
-                const endpoint = purpose === 'reset'
-                  ? '/api/auth/forgot-password'
-                  : '/api/auth/resend-otp';
-                
-                const response = await fetch(endpoint, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ email }),
-                });
-                
-                const result = await response.json();
-                if (response.ok && result.success) {
-                  setSuccess("Verification code resent. Please check your email.");
-                } else {
-                  setError(result.message || "Failed to resend verification code");
-                }
-              } catch (err) {
-                setError("Failed to resend verification code");
-              } finally {
-                setIsSubmitting(false);
-              }
-            }
-          }}
-          className="text-blue-600 hover:underline text-sm"
+          onClick={handleResendCode}
+          disabled={isSubmitting}
+          className="text-blue-600 hover:underline text-sm disabled:opacity-50"
         >
           Resend verification code
         </button>

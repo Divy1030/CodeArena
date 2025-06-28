@@ -33,7 +33,6 @@ const endpoints = {
     deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
     addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
     
-
     submitSolution: `${API_BASE_URL}/api/v1/contest/submit-solution`,
     // Updated endpoints for problem management
     getProblems: `${API_BASE_URL}/api/v1/contest/get-problems`,
@@ -51,17 +50,27 @@ const endpoints = {
     uploadBackground: `${API_BASE_URL}/api/v1/contest/background`,
   },
   user: {
-    getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`, // This is correct based on controller
-    changePassword: `${API_BASE_URL}/api/v1/auth/change-password`, // This is correct based on controller
-    getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`, // Add this line
+    getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`,
+    changePassword: `${API_BASE_URL}/api/v1/auth/change-password`,
+    getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`,
     uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
-    getUserById: `${API_BASE_URL}/api/v1/user`, // Update this line - remove "auth/" from path
+    getUserById: `${API_BASE_URL}/api/v1/auth`,
+    
+    // Fix these endpoints to match backend routes
+    followUnfollow: `${API_BASE_URL}/api/v1/auth/follow`,
+    searchFriends: `${API_BASE_URL}/api/v1/auth/search-friends`,
+    suggestedUsers: `${API_BASE_URL}/api/v1/auth/suggested-users`,
+    getUserProfile: `${API_BASE_URL}/api/v1/auth/profile`,
   },
   problem: {
-    submit: `${API_BASE_URL}/api/v1/code/submit`,
+    submit: `${API_BASE_URL}/api/v1/problem/submit-solution`,
     run: `${API_BASE_URL}/api/v1/code/run`,
     getProblemById: `${API_BASE_URL}/api/v1/problem/get-problem`,
   },
+  code: {
+    run: `${API_BASE_URL}/api/v1/code/execute`,
+    runAllTestCases: `${API_BASE_URL}/api/v1/code/execute-all`,
+  }
 };
 
 export default endpoints;

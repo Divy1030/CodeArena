@@ -1,16 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 
+// Define interfaces for type safety
+interface TestCase {
+  input: string;
+  expectedOutput?: string;
+  output?: string;
+}
+
+interface RequestBody {
+  code: string;
+  language: string;
+  testCases: TestCase[];
+}
+
+interface BackendResponse {
+  data?: unknown;
+  message?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    console.log("FRONTEND API ROUTE - Starting code execution");
+    
+    // Parse request body with error handling
+    let body: RequestBody;
+    try {
+      body = await request.json();
+      console.log("FRONTEND API ROUTE - Request body parsed successfully");
+    } catch (parseError) {
+      console.error("FRONTEND API ROUTE - Failed to parse request body:", parseError);
+      return NextResponse.json(
+        { success: false, message: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+    
+    console.log("FRONTEND API ROUTE - Original request body:", body);
     
     // Validate required fields
-    if (!body.code || !body.language) {
+    if (!body.code || !body.language || !body.testCases || !Array.isArray(body.testCases)) {
+      console.error("FRONTEND API ROUTE - Missing required fields");
       return NextResponse.json(
         { 
           success: false, 
-          message: 'Missing required fields: code and language are required' 
+          message: 'Missing required fields: code, language, and testCases array are required' 
         },
         { status: 400 }
       );
@@ -18,45 +52,74 @@ export async function POST(request: NextRequest) {
 
     // Get token from cookies or authorization header
     const token = request.cookies.get('accessToken')?.value || 
+                 request.headers.get('Authorization')?.replace('Bearer ', '') ||
                  request.headers.get('authorization')?.replace('Bearer ', '');
     
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Call backend API
-    const response = await fetch(endpoints.problem.run, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
+    // Transform the request body
+    const transformedBody = {
+      ...body,
+      testCases: body.testCases.map((tc: TestCase) => ({
+        input: tc.input,
+        output: tc.expectedOutput || tc.output // Handle both formats
+      }))
+    };
+    
+    console.log("FRONTEND API ROUTE - API endpoint URL:", endpoints.code.run);
+    console.log("FRONTEND API ROUTE - Transformed request body:", JSON.stringify(transformedBody).substring(0, 200) + "...");
+    
+    try {
+      // Call backend API
+      const response = await fetch(endpoints.code.run, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(transformedBody),
+      });
+      
+      console.log("FRONTEND API ROUTE - Response status:", response.status);
+      
+      if (!response.ok) {
+        console.error(`FRONTEND API ROUTE - Backend API returned error ${response.status}`);
+      }
+      
+      let responseData: BackendResponse;
+      try {
+        responseData = await response.json();
+        console.log("FRONTEND API ROUTE - Response data:", JSON.stringify(responseData).substring(0, 200) + "...");
+      } catch (jsonError) {
+        console.error("FRONTEND API ROUTE - Failed to parse response as JSON:", jsonError);
+        return NextResponse.json(
+          { success: false, message: 'Invalid response from backend' },
+          { status: 500 }
+        );
+      }
+      
+      // Transform backend response to match frontend expectations
+      const transformedResponse = {
+        success: response.ok,
+        message: response.ok ? 'Code run successfully' : (responseData.message || 'Failed to run code'),
+        data: responseData.data,
+        statusCode: response.status
+      };
+      
+      console.log("FRONTEND API ROUTE - Transformed response:", JSON.stringify(transformedResponse).substring(0, 200) + "...");
+      
+      return NextResponse.json(transformedResponse);
+    } catch (fetchError) {
+      console.error("FRONTEND API ROUTE - Fetch error:", fetchError);
       return NextResponse.json(
         { 
           success: false, 
-          message: data.message || 'Failed to run code',
-          details: data
+          message: 'Failed to connect to backend API',
+          details: fetchError instanceof Error ? fetchError.message : String(fetchError)
         },
-        { status: response.status }
+        { status: 500 }
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Code executed successfully',
-      data: data.data
-    });
   } catch (error) {
-    console.error('Error running code:', error);
+    console.error('FRONTEND API ROUTE - Unhandled error:', error);
     return NextResponse.json(
       { 
         success: false, 

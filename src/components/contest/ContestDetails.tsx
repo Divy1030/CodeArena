@@ -14,10 +14,39 @@ import {
   Shield
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/dashboard/button';
 
+// Define proper interfaces for all data types
+interface Problem {
+  _id: string;
+  title?: string;
+  difficulty?: string;
+  points?: number;
+  submissionCount?: number;
+  isActive?: boolean;
+}
+
+interface Contest {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  duration?: number;
+  difficulty?: string;
+  problems?: Problem[];
+  participants?: { userId: string; joinedAt: string }[];
+  organizer?: string | UserData;
+  moderators?: string[] | UserData[];
+  rules?: string;
+  submissions?: unknown[];
+  totalScore?: number;
+  backgroundImage?: string;
+}
+
 interface ContestDetailsProps {
-  contest: any;
+  contest: Contest;
   isAdmin?: boolean;
 }
 
@@ -62,11 +91,11 @@ const ContestDetails: React.FC<ContestDetailsProps> = ({
     const fetchModeratorsData = async () => {
       if (!contest?.moderators || !Array.isArray(contest.moderators)) return;
       
-      const moderatorPromises = contest.moderators.map(async (modId: string) => {
-        if (typeof modId !== 'string') return null;
+      const moderatorPromises = contest.moderators.map(async (mod: string | UserData) => {
+        if (typeof mod !== 'string') return null;
         
         try {
-          const response = await fetch(`/api/user/${modId}`);
+          const response = await fetch(`/api/user/${mod}`);
           
           if (response.ok) {
             const data = await response.json();
@@ -76,7 +105,7 @@ const ContestDetails: React.FC<ContestDetailsProps> = ({
           }
           return null;
         } catch (error) {
-          console.error(`Error fetching moderator ${modId}:`, error);
+          console.error(`Error fetching moderator ${mod}:`, error);
           return null;
         }
       });
@@ -88,7 +117,7 @@ const ContestDetails: React.FC<ContestDetailsProps> = ({
     if (typeof contest.organizer === 'string') {
       fetchOrganizerData();
     } else if (contest.organizer) {
-      setOrganizerData(contest.organizer);
+      setOrganizerData(contest.organizer as UserData);
     }
 
     if (Array.isArray(contest.moderators)) {
@@ -244,7 +273,7 @@ const ContestDetails: React.FC<ContestDetailsProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {contest.problems.map((problem: any, index: number) => (
+                  {contest.problems.map((problem: Problem, index: number) => (
                     <tr key={problem._id || index} className="border-t border-gray-700">
                       <td className="py-3 pr-6">
                         <Link href={`/problem/${problem._id}`} className="text-blue-400 hover:underline">
@@ -321,11 +350,15 @@ const ContestDetails: React.FC<ContestDetailsProps> = ({
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                   {organizerData.profilePicture ? (
-                    <img 
-                      src={organizerData.profilePicture} 
-                      alt={organizerData.username || "Organizer"}
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="relative w-full h-full">
+                      <Image 
+                        src={organizerData.profilePicture} 
+                        alt={organizerData.username || "Organizer"}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                      />
+                    </div>
                   ) : (
                     <span className="text-xl font-semibold text-gray-300">
                       {(organizerData.username || "O").charAt(0).toUpperCase()}
@@ -370,11 +403,15 @@ const ContestDetails: React.FC<ContestDetailsProps> = ({
                   <div key={moderator._id || index} className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                       {moderator.profilePicture ? (
-                        <img 
-                          src={moderator.profilePicture} 
-                          alt={moderator.username || "Moderator"}
-                          className="w-full h-full object-cover"
-                        />
+                        <div className="relative w-full h-full">
+                          <Image 
+                            src={moderator.profilePicture} 
+                            alt={moderator.username || "Moderator"}
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <span className="text-lg font-semibold text-gray-300">
                           {(moderator.username || "M").charAt(0).toUpperCase()}
@@ -442,18 +479,18 @@ const StatsCard = ({
 };
 
 // Helper functions
-const calculateTotalPoints = (problems: any[] = []) => {
+const calculateTotalPoints = (problems: Problem[] = []) => {
   if (!problems || problems.length === 0) return 0;
   return problems.reduce((sum, problem) => sum + (problem.points || 100), 0);
 };
 
-const calculateTotalSubmissions = (problems: any[] = []) => {
+const calculateTotalSubmissions = (problems: Problem[] = []) => {
   if (!problems || problems.length === 0) return 0;
   return problems.reduce((sum, problem) => sum + (problem.submissionCount || 0), 0);
 };
 
 const getDifficultyBadgeClass = (difficulty: string = "medium") => {
-  const lowerDifficulty = difficulty.toLowerCase();
+  const lowerDifficulty = difficulty?.toLowerCase() || "medium";
   if (lowerDifficulty === "easy") {
     return "px-2 py-1 rounded-full text-xs bg-green-900/50 text-green-400";
   } else if (lowerDifficulty === "hard") {

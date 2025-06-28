@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 import "server-only";
 
+// Define interface for moderator data
+interface Moderator {
+  id: string;
+  username: string;
+  profilePicture?: string | null;
+  role: string;
+}
+
+// Define interface for backend response data
+interface BackendResponseData {
+  moderators: Moderator[];
+}
+
+interface BackendResponse {
+  data: BackendResponseData;
+  message?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ contestId: string }> }
@@ -56,7 +74,7 @@ export async function GET(
       );
     }
 
-    const data = await response.json();
+    const data: BackendResponse = await response.json();
     console.log("Get moderators response:", data);
 
     if (!response.ok) {
@@ -71,7 +89,7 @@ export async function GET(
     }
 
     // Process profile pictures - ensure they have valid URLs
-    const moderators = data.data.moderators.map((mod: any) => ({
+    const moderators = data.data.moderators.map((mod: Moderator) => ({
       id: mod.id,
       username: mod.username,
       profilePicture: mod.profilePicture || null,

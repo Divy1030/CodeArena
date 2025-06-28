@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
-import { cookies } from 'next/headers';
+// import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {

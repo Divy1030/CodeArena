@@ -8,12 +8,22 @@ import { CombinedAuthFormSchema } from "@/libs/schema/authSchema";
 import { AuthFormType } from "./types/auth.types";
 import { CombinedFormValues } from "./types/form.types";
 import Link from "next/link";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import axios from "axios";
 import CustomInput from "@/components/Custom/CustomInput";
 
 interface AuthFormProps {
   type: AuthFormType;
+}
+
+interface AxiosError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+    status?: number;
+  };
+  message: string;
 }
  
 export default function AuthForm({ type }: AuthFormProps) {
@@ -176,15 +186,15 @@ export default function AuthForm({ type }: AuthFormProps) {
           setError(result.message || 'Registration failed');
         }
       }
-    } catch (err) {
-      console.error('Auth error:', err);
+    } catch (error: unknown) {
+      console.error('Auth error:', error);
       setError('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleLogin = async (credentialResponse: any) => {
+  const handleLogin = async (credentialResponse: CredentialResponse) => {
     const idToken = credentialResponse.credential;
 
     try {
@@ -220,8 +230,9 @@ export default function AuthForm({ type }: AuthFormProps) {
       } else {
         setError(res.data.message || "Login failed");
       }
-    } catch (error: any) {
-      console.error("Login error", error.response?.data || error.message);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      console.error("Login error", axiosError.response?.data || axiosError.message);
       setError("Something went wrong. Please try again.");
     }
   };

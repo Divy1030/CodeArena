@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { toast } from "react-hot-toast";
@@ -23,7 +23,7 @@ interface ContestData {
   landingPageTitle?: string;
   landingPageDescription?: string;
   landingPageImage?: string;
-  backgroundImage?: string; // Add background image field
+  backgroundImage?: string;
 }
 
 function ContestDetailsPage() {
@@ -34,8 +34,6 @@ function ContestDetailsPage() {
   const [contest, setContest] = useState<ContestData | null>(null);
   const [contestTitle, setContestTitle] = useState("");
   const [contestDescription, setContestDescription] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTimeOnly, setStartTimeOnly] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -45,11 +43,11 @@ function ContestDetailsPage() {
   const [prizes, setPrizes] = useState("");
   const [rules, setRules] = useState("");
   const [scoring, setScoring] = useState("");
-  const [landingPageImage, setLandingPageImage] = useState<File | null>(null);
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null); // Add state for background image
+  const [landingPageImage, ] = useState<File | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [contestUrl, setContestUrl] = useState("");
   
-  const fetchContest = async () => {
+  const fetchContest = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/contest/getContestById/${contestId}`);
@@ -79,28 +77,22 @@ function ContestDetailsPage() {
         setPrizes(result.data.prizes || "");
         setRules(result.data.rules || "");
         setScoring(result.data.scoring || "");
-        setBackgroundImage(result.data.backgroundImage || null); // Set background image
+        setBackgroundImage(result.data.backgroundImage || null);
       } else {
         toast.error("Failed to load contest details");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error fetching contest details");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [contestId]);
 
   useEffect(() => {
     if (contestId) {
       fetchContest();
     }
-  }, [contestId]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setLandingPageImage(e.target.files[0]);
-    }
-  };
+  }, [contestId, fetchContest]);
   
   // Handler for background image updates
   const handleBackgroundUpdate = (imageUrl: string) => {
@@ -130,26 +122,12 @@ function ContestDetailsPage() {
 
       // Get token from localStorage
       const token = localStorage.getItem('token');
-      
-      console.log("Sending contest update with data:", {
-        title: contestTitle,
-        description: contestDescription,
-        startTime: newStartTime.toISOString(),
-        endTime: newEndTime.toISOString(),
-        landingPageTitle,
-        landingPageDescription,
-        prizes,
-        rules,
-        scoring,
-        landingPageImage: imageUrl,
-        backgroundImage, // Include background image in the update
-      });
 
       const response = await fetch(`/api/contest/updateContestDetails/${contestId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // Add the token
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           title: contestTitle,
@@ -162,12 +140,11 @@ function ContestDetailsPage() {
           rules,
           scoring,
           landingPageImage: imageUrl,
-          backgroundImage, // Include background image in the update
+          backgroundImage,
         }),
       });
 
       const result = await response.json();
-      console.log("Update response:", result);
 
       if (result.success) {
         toast.success("Contest details updated successfully");

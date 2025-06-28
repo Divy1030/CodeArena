@@ -104,7 +104,7 @@ function ContestChallengesPreview() {
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-screen py-12 bg-[#0f172a]">
           <h1 className="text-2xl font-bold text-white">Contest not found</h1>
-          <p className="mt-2 text-gray-400">The contest you're looking for doesn't exist or you don't have permission to view it.</p>
+          <p className="mt-2 text-gray-400">The contest you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.</p>
           <Link href="/contests" className="mt-4 text-blue-500 hover:underline">
             Back to contests
           </Link>
