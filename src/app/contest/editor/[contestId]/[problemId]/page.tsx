@@ -565,13 +565,13 @@ int main() {
     }
   };
 
-  const lintJava = async (_view: EditorView): Promise<Diagnostic[]> => {
-    // Mock implementation
+  const lintJava = async (): Promise<Diagnostic[]> => {
+    // Mock implementation - removed unused _view parameter
     return [];
   };
 
-  const lintCpp = async (_view: EditorView): Promise<Diagnostic[]> => {
-    // Mock implementation
+  const lintCpp = async (): Promise<Diagnostic[]> => {
+    // Mock implementation - removed unused _view parameter
     return [];
   };
 
@@ -581,9 +581,9 @@ int main() {
     } else if (languageName === 'python') {
       return lintPython(view);
     } else if (languageName === 'java') {
-      return lintJava(view);
+      return lintJava();
     } else if (languageName === 'cpp') {
-      return lintCpp(view);
+      return lintCpp();
     } else {
       return Promise.resolve([]);
     }

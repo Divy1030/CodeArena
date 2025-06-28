@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import QuestionRow from '@/components/contest/QuestionRow';
 
@@ -19,7 +19,8 @@ interface ContestData {
   questions: Question[];
 }
 
-const ContestProblemPage: React.FC = () => {
+// Component that uses useSearchParams
+function ContestProblemContent() {
   // Keep activeQuestion state as it's used in handleSolve
   const [, setActiveQuestion] = useState<number>(1);
   const [contestData, setContestData] = useState<ContestData | null>(null);
@@ -173,6 +174,27 @@ const ContestProblemPage: React.FC = () => {
         </div>
       </main>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
+        <div className="text-white text-xl">Loading contest...</div>
+      </div>
+    </div>
+  );
+}
+
+// Main page component wrapped in Suspense
+const ContestProblemPage: React.FC = () => {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ContestProblemContent />
+    </Suspense>
   );
 };
 
