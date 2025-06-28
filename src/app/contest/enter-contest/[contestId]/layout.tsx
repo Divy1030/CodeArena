@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 
@@ -9,9 +8,23 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+interface UserData {
+  _id?: string;
+  username?: string;
+  email?: string;
+  profilePicture?: string;
+  role?: string;
+  profile?: {
+    name?: string;
+    institution?: string;
+    country?: string;
+    bio?: string;
+    avatarUrl?: string;
+  };
+}
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [userData, setUserData] = useState<any>(null);
-  const router = useRouter();
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
     // Get user data from localStorage or session

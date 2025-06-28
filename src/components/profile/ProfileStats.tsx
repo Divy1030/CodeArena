@@ -4,11 +4,58 @@ import { Card, CardContent } from '@/components/ui/dashboard/Card';
 import { ProgrammingLanguageChart } from './charts/ProgrammingLanguageChart';
 import { PerformanceChart } from './charts/PerformanceChart';
 
+// Updated interface for contests to match the parent component structure
+interface Contest {
+  _id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  joinedAt?: string;
+  rank?: number | string;
+  score?: number;
+  status?: 'upcoming' | 'live' | 'past';
+  hasJoined?: boolean;
+  [key: string]: unknown; // Allow other properties
+}
+
+// Updated interface for problems to match the parent component structure
+interface Problem {
+  problemId?: { 
+    _id: string; 
+    title: string; 
+    difficulty?: string 
+  } | string;
+  solvedAt?: string;
+  points?: number;
+  status?: string;
+  submissionId?: string;
+  [key: string]: unknown; // Allow other properties
+}
+
+// Updated interface to match the UserData from parent
+interface UserProfile {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  password?: string;
+  rating?: number;
+  contestsParticipated?: Contest[];
+  solvedProblems?: Problem[];
+  following?: Array<{ _id: string; username?: string; profilePicture?: string }>;
+  followers?: Array<{ _id: string; username?: string; profilePicture?: string }>;
+  rank?: string | number;
+  [key: string]: unknown; // Allow other properties
+}
+
 interface ProfileStatsProps {
-  user: any;
+  user: UserProfile;
 }
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ user }) => {
+  // Calculate number of solved problems (handle both formats)
+  const solvedProblemCount = user.solvedProblems?.length || 0;
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold">Statistics</h2>
@@ -16,7 +63,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ user }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard 
           icon={<Trophy className="text-yellow-500" />}
-          value={user.rating}
+          value={user.rating || 0}
           label="Rating"
         />
         <StatCard 
@@ -26,7 +73,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ user }) => {
         />
         <StatCard 
           icon={<Code className="text-blue-500" />}
-          value={user.solvedProblems?.length || 0}
+          value={solvedProblemCount}
           label="Problems Solved"
         />
         <StatCard 

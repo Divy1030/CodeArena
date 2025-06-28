@@ -1,10 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 
 export default function ManageContestNavbar() {
-  const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
   const contestId = params?.contestId as string;
@@ -33,7 +32,7 @@ export default function ManageContestNavbar() {
   // Update active tab when pathname changes
   useEffect(() => {
     setActiveTab(getActiveTab());
-  }, [pathname]);
+  }, [pathname, getActiveTab]); // Added getActiveTab to dependencies
 
   return (
     <div className="bg-[#121B38] border-b border-gray-700 overflow-x-auto">

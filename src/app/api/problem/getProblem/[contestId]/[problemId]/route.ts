@@ -68,10 +68,11 @@ import "server-only";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { contestId: string; problemId: string } }
+  { params }: { params: Promise<{ contestId: string; problemId: string }> }
 ) {
   try {
-    const { contestId, problemId } = params;
+    // Wait for params since it's now a Promise
+    const { contestId, problemId } = await params;
     
     console.log('API route called with contestId:', contestId, 'problemId:', problemId);
 
@@ -82,21 +83,22 @@ export async function GET(
       );
     }
 
-    // Get token from localStorage or cookies
+    // Get token from cookies or authorization header
     const token = request.cookies.get('accessToken')?.value || 
                   request.headers.get('Authorization')?.replace('Bearer ', '') ||
-                  request.headers.get('authorization')?.replace('Bearer ', '');
+                  request.headers.get('authorization')?.replace('Bearer ', '') ||
+                  request.headers.get('x-access-token');
     
     console.log('Token available:', !!token);
 
     if (!token) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized - No token provided' },
+        { success: false, message: 'Unauthorized - No token found in request' },
         { status: 401 }
       );
     }
 
-    // Update to use query params instead of path params
+    // Build backend URL with path params
     const backendUrl = `${endpoints.problem.getProblemById}/${contestId}/${problemId}`;
     console.log('Calling backend URL:', backendUrl);
 
@@ -125,9 +127,11 @@ export async function GET(
 
     // Parse the JSON response
     const data = await response.json();
+    console.log('Get problem response:', data);
+    
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Error fetching problem:', error);
+    console.error('Get problem error details:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

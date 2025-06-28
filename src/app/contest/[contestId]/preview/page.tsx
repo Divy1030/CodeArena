@@ -34,6 +34,7 @@ function ContestPreviewPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [contest, setContest] = useState<ContestData | null>(null);
+  const [, setError] = useState("");
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -46,9 +47,11 @@ function ContestPreviewPage() {
           setContest(result.data);
         } else {
           toast.error("Failed to load contest details");
+          setError("Failed to load contest details");
         }
-      } catch (error) {
+      } catch  {
         toast.error("Error fetching contest details");
+        setError("Error fetching contest details");
       } finally {
         setIsLoading(false);
       }
@@ -58,18 +61,6 @@ function ContestPreviewPage() {
       fetchContest();
     }
   }, [contestId]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric', 
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
-  };
 
   if (isLoading) {
     return (
@@ -83,7 +74,7 @@ function ContestPreviewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-12">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Contest not found</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">The contest you're looking for doesn't exist or you don't have permission to view it.</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">The contest you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.</p>
         <Link href="/contests" className="mt-4 text-blue-500 hover:underline">
           Back to contests
         </Link>

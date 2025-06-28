@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/dashboard/button";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { format } from 'date-fns';
+// import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 
 // Interface for contest data

@@ -4,10 +4,11 @@ import "server-only";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { contestId: string } }
+  { params }: { params: Promise<{ contestId: string }> }
 ) {
   try {
-    const { contestId } = params;
+    // Wait for params since it's now a Promise
+    const { contestId } = await params;
     
     if (!contestId) {
       return NextResponse.json(
@@ -19,12 +20,14 @@ export async function POST(
     // Get the problem data from the request body
     const requestData = await request.json();
 
-    // Get token from cookies
-    const token = request.cookies.get('accessToken')?.value;
+    // Get token from cookies or authorization header
+    const token = request.cookies.get('accessToken')?.value ||
+                 request.headers.get('Authorization')?.replace('Bearer ', '') ||
+                 request.headers.get('x-access-token');
     
     if (!token) {
       return NextResponse.json(
-        { success: false, message: 'Authentication required' },
+        { success: false, message: 'Unauthorized - No token found in request' },
         { status: 401 }
       );
     }
@@ -33,6 +36,8 @@ export async function POST(
     if (!requestData.testCases) {
       requestData.testCases = [];
     }
+
+    console.log('Adding problem to contest:', contestId);
 
     // Call backend API
     const response = await fetch(`${endpoints.contest.addProblems}/${contestId}`, {
@@ -61,6 +66,7 @@ export async function POST(
     }
 
     const data = await response.json();
+    console.log("Add problem response:", data);
     
     if (!response.ok) {
       return NextResponse.json(
@@ -79,7 +85,7 @@ export async function POST(
       data: data.data
     });
   } catch (error) {
-    console.error('Error adding problem to contest:', error);
+    console.error('Add problem error details:', error);
     return NextResponse.json(
       { 
         success: false, 

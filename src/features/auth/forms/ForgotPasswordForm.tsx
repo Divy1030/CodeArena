@@ -65,7 +65,7 @@ export default function ForgotPasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
       <h1 className="text-2xl font-bold text-center">Forgot Password</h1>
       <p className="text-center text-gray-600">
-        Enter your email address and we'll send you a verification code to reset your password.
+        Enter your email address and we&apos;ll send you a verification code to reset your password.
       </p>
       
       {error && (

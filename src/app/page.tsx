@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
-import Image from "next/image";
+// import Image from "next/image";
 import RotatingText from "@/components/bits/RotatingText";
-import Hyperspeed from "@/components/bits/HyperSpeed";
+// import Hyperspeed from "@/components/bits/HyperSpeed";
 
 // Updated SkillsSection with integrated RotatingText
 const SkillsSection = () => (
@@ -64,7 +64,7 @@ const FocusOnCode = () => (
 
 export default function Home() {
   // State for hyperspeed effect speed control
-  const [isHyperspeedFast, setIsHyperspeedFast] = useState(false);
+  const [, setIsHyperspeedFast] = useState(false);
 
   // Handle mouse events for speed boost
   const handleSpeedUp = () => {
@@ -76,24 +76,24 @@ export default function Home() {
   };
 
   // Custom hyperspeed options
-  const hyperspeedOptions = {
-    fov: 90,
-    fovSpeedUp: 140,
-    speedUp: 3,
-    colors: {
-      roadColor: 0x080830,
-      islandColor: 0x0a0a3a,
-      background: 0x000022,
-      shoulderLines: 0x4040ff,
-      brokenLines: 0x4040ff,
-      leftCars: [0x4444ff, 0x4444ff, 0x4444ff],
-      rightCars: [0x4040cc, 0x3030cc, 0x2020cc],
-      sticks: 0x4040cc,
-    },
-    isHyper: isHyperspeedFast,
-    onSpeedUp: handleSpeedUp,
-    onSlowDown: handleSlowDown,
-  };
+  // const hyperspeedOptions = {
+  //   fov: 90,
+  //   fovSpeedUp: 140,
+  //   speedUp: 3,
+  //   colors: {
+  //     roadColor: 0x080830,
+  //     islandColor: 0x0a0a3a,
+  //     background: 0x000022,
+  //     shoulderLines: 0x4040ff,
+  //     brokenLines: 0x4040ff,
+  //     leftCars: [0x4444ff, 0x4444ff, 0x4444ff],
+  //     rightCars: [0x4040cc, 0x3030cc, 0x2020cc],
+  //     sticks: 0x4040cc,
+  //   },
+  //   isHyper: isHyperspeedFast,
+  //   onSpeedUp: handleSpeedUp,
+  //   onSlowDown: handleSlowDown,
+  // };
 
   return (
     <div className="flex flex-col min-h-screen relative">
@@ -104,7 +104,7 @@ export default function Home() {
       <div className="relative bg-black h-[100vh] overflow-hidden">
         {/* Hyperspeed effect container */}
         <div className="absolute inset-0 z-0 h-full w-full opacity-70">
-          <Hyperspeed effectOptions={hyperspeedOptions} />
+          {/* <Hyperspeed effectOptions={hyperspeedOptions} /> */}
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 text-left z-10 flex flex-col justify-center h-full">

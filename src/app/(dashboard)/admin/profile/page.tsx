@@ -10,8 +10,42 @@ import AdminContests from '@/components/admin/AdminContests';
 import SecuritySettings from '@/components/profile/SecuritySettings';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
+interface Participant {
+  _id: string;
+  username: string;
+  email: string;
+}
+
+interface Contest {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  status?: string;
+  participants?: Participant[];
+}
+
+interface AdminData {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  password?: string;
+  role: string;
+  contestsCreated?: Contest[];
+  profile?: {
+    name?: string;
+    institution?: string;
+    country?: string;
+    bio?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const AdminProfilePage = () => {
-  const [adminData, setAdminData] = useState<any>(null);
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();

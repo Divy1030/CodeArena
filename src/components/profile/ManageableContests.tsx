@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-import { Calendar, Clock, Users, Award, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, ArrowRight } from 'lucide-react';
 
 interface Contest {
   _id: string;
@@ -150,7 +150,7 @@ const ManageableContests: React.FC<ManageableContestsProps> = ({ userId }) => {
       <div className="bg-[#121B38] rounded-xl p-6 space-y-4">
         <h3 className="text-lg font-medium text-white">Manageable Contests</h3>
         <div className="py-6 text-center">
-          <p className="text-gray-400">You don't have any contests to manage.</p>
+          <p className="text-gray-400">You don&apos;t have any contests to manage.</p>
         </div>
       </div>
     );

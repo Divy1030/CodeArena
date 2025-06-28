@@ -1,8 +1,8 @@
 "use client";
 import React from 'react';
-import Image from 'next/image';
-import { LogOut, Edit } from 'lucide-react';
-import { Button } from '@/components/ui/dashboard/button';
+// import Image from 'next/image';
+// import { LogOut, Edit } from 'lucide-react';
+// import { Button } from '@/components/ui/dashboard/button';
 import ProfilePictureUpload from './ProfilePictureUpload';
 
 interface User {

@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/dashboard/Card';
-import { Calendar, Clock, Users, Boxes, Plus, Edit, Eye } from 'lucide-react';
+// Remove unused imports but keep the link import
 import { format, isValid } from 'date-fns';
 import Link from 'next/link';
-import { Button } from '@/components/ui/dashboard/button';
+
+// Define a proper interface for contest data
+interface Contest {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+}
 
 interface AdminContestsProps {
-  contests: any[];
+  contests: Contest[];
 }
 
 const AdminContests: React.FC<AdminContestsProps> = ({ contests }) => {

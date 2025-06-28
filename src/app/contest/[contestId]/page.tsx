@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -9,14 +9,33 @@ import ContestDetails from '@/components/contest/ContestDetails';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { toast } from 'react-hot-toast';
 
+// Define a Contest interface to replace 'any'
+interface Contest {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  duration?: number;
+  isRated?: boolean;
+  tags?: string[];
+  rules?: string;
+  organizationType?: string;
+  organizationName?: string;
+  prizes?: string;
+  scoring?: string;
+  participants?: Array<{ userId: string; joinedAt: string }>;
+  [key: string]: unknown; // For any other properties
+}
+
 export default function ContestDetailsPage() {
   const { contestId } = useParams();
-  const router = useRouter();
+  // Remove unused router import/variable
   const searchParams = useSearchParams();
   const returnPath = searchParams.get('returnPath');
   const isAdmin = searchParams.get('isAdmin') === 'true';
   
-  const [contest, setContest] = useState<any>(null);
+  const [contest, setContest] = useState<Contest | null>(null);
   const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -18,7 +18,7 @@ export default function CustomInput<T extends FieldValues>({
   control,
   placeholder = "",
   type = "text",
-  isLoginForm = false,
+  // isLoginForm = false,
   showStrengthChecker = false,
 }: CustomInputProps<T>) {
   const [passwordStrength, setPasswordStrength] = useState({

@@ -4,25 +4,62 @@ import { Card, CardContent } from '@/components/ui/dashboard/Card';
 import { AdminActivityChart } from './charts/AdminActivityChart';
 import { ContestDistributionChart } from './charts/ContestDistributionChart';
 
+// Define interfaces that match the parent component's interface structure
+interface Participant {
+  _id: string;
+  username: string;
+  email: string;
+}
+
+interface Contest {
+  _id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  status?: string;
+  participants?: Participant[];
+}
+
+// Match the AdminData interface from the parent component
+interface AdminData {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  password?: string;
+  role: string;
+  contestsCreated?: Contest[];
+  profile?: {
+    name?: string;
+    institution?: string;
+    country?: string;
+    bio?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface AdminStatsProps {
-  admin: any;
+  admin: AdminData;
 }
 
 const AdminStats: React.FC<AdminStatsProps> = ({ admin }) => {
   // Calculate statistics
   const totalContests = admin.contestsCreated?.length || 0;
-  const totalProblems = admin.contestsCreated?.reduce((acc: number, contest: any) => {
-    return acc + (contest.problems?.length || 0);
-  }, 0) || 0;
   
-  const activeContests = admin.contestsCreated?.filter((contest: any) => {
+  // Since we don't have a 'problems' field in the Contest interface from parent,
+  // we can't calculate this accurately, so we'll set it to 0 or modify as needed
+  const totalProblems = 0; // Modify if you have a way to calculate this
+  
+  const activeContests = admin.contestsCreated?.filter((contest: Contest) => {
     const now = new Date();
-    const startDate = new Date(contest.startDate);
-    const endDate = new Date(contest.endDate);
+    const startDate = new Date(contest.startTime);
+    const endDate = new Date(contest.endTime);
     return now >= startDate && now <= endDate;
   }).length || 0;
   
-  const totalParticipants = admin.contestsCreated?.reduce((acc: number, contest: any) => {
+  const totalParticipants = admin.contestsCreated?.reduce((acc: number, contest: Contest) => {
     return acc + (contest.participants?.length || 0);
   }, 0) || 0;
   

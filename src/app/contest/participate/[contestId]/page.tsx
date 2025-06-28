@@ -6,12 +6,20 @@ import { toast } from 'react-hot-toast';
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { formatDistanceToNow } from 'date-fns';
 
+// Define more specific types for test cases
+interface TestCase {
+  input: string;
+  output: string;
+  explanation?: string;
+  isHidden?: boolean;
+}
+
 interface Problem {
   _id: string;
   title: string;
   difficulty: string;
   statement?: string;
-  testCases?: any[];
+  testCases?: TestCase[]; // Replace any[] with TestCase[]
 }
 
 interface ContestData {
@@ -24,6 +32,16 @@ interface ContestData {
   problems: Problem[];
   isRated: boolean;
   rules?: string;
+}
+
+// Define the shape of problem data from API
+interface ApiProblem {
+  _id: string;
+  title: string;
+  difficulty?: string;
+  statement?: string;
+  testCases?: TestCase[];
+  [key: string]: unknown; // For any other properties
 }
 
 const ContestParticipationPage: React.FC = () => {
@@ -65,11 +83,12 @@ const ContestParticipationPage: React.FC = () => {
             startTime: contestData.startTime,
             endTime: contestData.endTime,
             duration: contestData.duration,
-            problems: contestData.problems?.map((problem: any) => ({
+            problems: contestData.problems?.map((problem: ApiProblem) => ({
               _id: problem._id,
               title: problem.title,
               difficulty: problem.difficulty || 'Medium',
               statement: problem.statement,
+              testCases: problem.testCases
             })) || [],
             isRated: contestData.isRated,
             rules: contestData.rules

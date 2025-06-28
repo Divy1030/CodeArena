@@ -4,10 +4,12 @@ import "server-only";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { contestId: string } }
+  { params }: { params: Promise<{ contestId: string }> }
 ) {
   try {
-    const { contestId } = params;
+    // Wait for params since it's now a Promise
+    const { contestId } = await params;
+
     if (!contestId) {
       return NextResponse.json(
         { success: false, message: "Contest ID is required" },
@@ -20,14 +22,17 @@ export async function POST(
     // Get token from cookies or authorization header
     const token =
       request.cookies.get("accessToken")?.value ||
-      request.headers.get("authorization")?.replace("Bearer ", "");
+      request.headers.get("Authorization")?.replace("Bearer ", "") ||
+      request.headers.get("x-access-token");
 
     if (!token) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized" },
+        { success: false, message: "Unauthorized - No token found in request" },
         { status: 401 }
       );
     }
+
+    console.log("Adding moderator to contest:", contestId);
 
     // Forward the request to your backend controller endpoint
     const response = await fetch(
@@ -57,6 +62,7 @@ export async function POST(
     }
 
     const data = await response.json();
+    console.log("Add moderator response:", data);
 
     if (!response.ok) {
       return NextResponse.json(
@@ -75,7 +81,7 @@ export async function POST(
       data: data.data,
     });
   } catch (error) {
-    console.error("Error adding moderator:", error);
+    console.error("Add moderator error details:", error);
     return NextResponse.json(
       {
         success: false,

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { ChevronDown, Play, Settings, Trophy, Award, Maximize2, Minimize2, Clock, AlertCircle } from 'lucide-react';
+import { Play, Settings, Trophy, Award, Maximize2, Minimize2, Clock, AlertCircle } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { java } from '@codemirror/lang-java';
@@ -46,13 +46,49 @@ interface ExecutionResult {
   }[];
 }
 
+interface ProblemExample {
+  input: string;
+  output: string;
+  explanation: string;
+}
+
+interface ProblemData {
+  title: string;
+  difficulty: string;
+  timeEstimate: string;
+  points: number;
+  description: string;
+  examples: ProblemExample[];
+  constraints: string[];
+  followUp: string;
+  startTime?: string;
+}
+
+interface TestCaseData {
+  input: string;
+  output: string;
+  explanation?: string;
+}
+
+interface ExecutionResultItem {
+  status?: string;
+  passed?: boolean;
+  actualOutput?: string;
+  output?: string;
+  memory?: number;
+  time?: string;
+  stderr?: string | null;
+  input?: string;
+  expectedOutput?: string;
+}
+
 const Compiler: React.FC = () => {
   const params = useParams();
   const contestId = params?.contestId as string;
   const problemId = params?.problemId as string;
 
   // State for problem data and test cases
-  const [problemData, setProblemData] = useState<any>(null);
+  const [problemData, setProblemData] = useState<ProblemData | null>(null);
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [selectedTestCase, setSelectedTestCase] = useState<TestCase | null>(null);
 
@@ -167,7 +203,7 @@ int main() {
             timeEstimate: (p.timeLimit ? `${p.timeLimit} sec` : "30 mins"),
             points: p.maxScore || getDifficultyPoints(p.difficulty),
             description: p.statement || "No description provided.",
-            examples: testCasesArr.slice(0, 3).map((tc: any) => ({
+            examples: testCasesArr.slice(0, 3).map((tc: TestCaseData) => ({
               input: tc.input,
               output: tc.output,
               explanation: tc.explanation || "No explanation provided."
@@ -176,7 +212,7 @@ int main() {
             followUp: p.followUp || ""
           });
           if (testCasesArr.length > 0) {
-            const formattedTestCases: TestCase[] = testCasesArr.map((tc: any, idx: number) => ({
+            const formattedTestCases: TestCase[] = testCasesArr.map((tc: TestCaseData, idx: number) => ({
               id: idx + 1,
               input: tc.input,
               expectedOutput: tc.output,
@@ -228,6 +264,7 @@ int main() {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [activeView, setActiveView] = useState<'problem' | 'ide'>('problem');
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isTablet, setIsTablet] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -295,16 +332,15 @@ int main() {
         
         // Calculate if all tests passed
         const totalTests = testCases.length;
-        const passedTests: number = results.filter((r: { 
-          status?: string; 
-          passed?: boolean; 
-        }) => r.status === 'Accepted' || r.passed === true).length;
+        const passedTests: number = results.filter((r: ExecutionResultItem) => 
+          r.status === 'Accepted' || r.passed === true
+        ).length;
         const allPassed = passedTests === totalTests;
         
         // Update the execution result with the transformed format
         setExecutionResult({
           allPassed,
-          results: results.map((r: any, idx: number) => ({
+          results: results.map((r: ExecutionResultItem, idx: number) => ({
             testCase: idx + 1,
             input: r.input || testCases[idx]?.input || '',
             expectedOutput: r.expectedOutput || testCases[idx]?.expectedOutput || '',
@@ -387,40 +423,39 @@ int main() {
       
       // Calculate if all tests passed
       const totalTests = testCases.length;
-      const passedTests: number = results.filter((r: { 
-        status?: string; 
-        passed?: boolean; 
-      }) => r.status === 'Accepted' || r.passed === true).length;
+      const passedTests: number = results.filter((r: ExecutionResultItem) => 
+        r.status === 'Accepted' || r.passed === true
+      ).length;
       const allPassed = passedTests === totalTests;
       
       // If all tests passed, submit the solution to the problem
       if (allPassed) {
         // Call the submit API to record the solution
-          const memoryOccupied =
-  results && results.length > 0 && results[0].memory !== undefined && results[0].memory !== null
-    ? Number(results[0].memory)
-    : 1; // fallback to 1 if missing
+        const memoryOccupied =
+          results && results.length > 0 && results[0].memory !== undefined && results[0].memory !== null
+            ? Number(results[0].memory)
+            : 1; // fallback to 1 if missing
 
-const timeOccupied =
-  results && results.length > 0 && results[0].time !== undefined && results[0].time !== null
-    ? Number(results[0].time)
-    : 1; // fallback to 1 if missing
+        const timeOccupied =
+          results && results.length > 0 && results[0].time !== undefined && results[0].time !== null
+            ? Number(results[0].time)
+            : 1; // fallback to 1 if missing
 
-const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-  },
-  body: JSON.stringify({
-    score: 100,
-    solutionCode: code,
-    languageUsed: languageName,
-    timeOccupied,
-    memoryOccupied,
-    timeGivenOnSolution: (new Date().getTime() - new Date(problemData.startTime || Date.now()).getTime()) / 1000
-  }),
-});
+        const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          },
+          body: JSON.stringify({
+            score: 100,
+            solutionCode: code,
+            languageUsed: languageName,
+            timeOccupied,
+            memoryOccupied,
+            timeGivenOnSolution: (new Date().getTime() - new Date(problemData?.startTime || Date.now()).getTime()) / 1000
+          }),
+        });
         
         const submitResult = await submitResponse.json();
         console.log('Submit API Response:', submitResult);
@@ -482,27 +517,27 @@ const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${
     }
   };
   
-  const lintJavaScript = async (view: EditorView): Promise<Diagnostic[]> => {
+  const lintJavaScript = async (_view: EditorView): Promise<Diagnostic[]> => {
     // Mock linter - in a real app you'd use a real linter like ESLint
     const results: LintResult[] = [];
     // Simulating results from a linter
     const diagnostics: Diagnostic[] = results.map((msg) => ({
-      from: view.state.doc.line(msg.line).from,
-      to: view.state.doc.line(msg.endLine || msg.line).to,
+      from: _view.state.doc.line(msg.line).from,
+      to: _view.state.doc.line(msg.endLine || msg.line).to,
       severity: msg.severity === 2 ? 'error' : 'warning',
       message: msg.message,
     }));
     return diagnostics;
   };
 
-  const lintPython = async (view: EditorView): Promise<Diagnostic[]> => {
+  const lintPython = async (_view: EditorView): Promise<Diagnostic[]> => {
     // In development/testing, don't actually make the API call
     if (process.env.NODE_ENV === 'development') {
       console.log('Linting Python code (mock)');
       return [];
     }
     
-    const code = view.state.doc.toString();
+    const code = _view.state.doc.toString();
     try {
       const response = await fetch('https://python-lint-api.example.com/lint', {
         method: 'POST',
@@ -518,8 +553,8 @@ const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${
       
       const results: LintResult[] = await response.json();
       const diagnostics: Diagnostic[] = results.map((msg) => ({
-        from: view.state.doc.line(msg.line).from,
-        to: view.state.doc.line(msg.endLine || msg.line).to,
+        from: _view.state.doc.line(msg.line).from,
+        to: _view.state.doc.line(msg.endLine || msg.line).to,
         severity: msg.severity === 'error' ? 'error' : 'warning',
         message: msg.message,
       }));
@@ -530,13 +565,13 @@ const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${
     }
   };
 
-  const lintJava = async (view: EditorView): Promise<Diagnostic[]> => {
-    // Mock implementation
+  const lintJava = async (): Promise<Diagnostic[]> => {
+    // Mock implementation - removed unused _view parameter
     return [];
   };
 
-  const lintCpp = async (view: EditorView): Promise<Diagnostic[]> => {
-    // Mock implementation
+  const lintCpp = async (): Promise<Diagnostic[]> => {
+    // Mock implementation - removed unused _view parameter
     return [];
   };
 
@@ -546,9 +581,9 @@ const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${
     } else if (languageName === 'python') {
       return lintPython(view);
     } else if (languageName === 'java') {
-      return lintJava(view);
+      return lintJava();
     } else if (languageName === 'cpp') {
-      return lintCpp(view);
+      return lintCpp();
     } else {
       return Promise.resolve([]);
     }
@@ -611,7 +646,7 @@ const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${
                   {problemData.description}
                 </p>
 
-                {problemData.examples.map((example: any, index: number) => (
+                {problemData.examples.map((example: ProblemExample, index: number) => (
                   <div key={index}>
                     <h3 className="font-semibold mb-2">Example {index + 1}:</h3>
                     <div className="bg-gray-700 p-4 rounded mb-4">

@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+// import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface UserProfile {
   _id: string;
@@ -113,12 +114,14 @@ export default function UserProfilePage() {
               <div className="p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
                   {/* Profile Picture */}
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 flex-shrink-0 relative">
                     {userProfile.profilePicture ? (
-                      <img 
+                      <Image 
                         src={userProfile.profilePicture} 
                         alt={userProfile.username} 
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="128px"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">

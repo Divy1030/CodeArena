@@ -5,9 +5,20 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/dashboard/button";
 import { Card, CardContent } from "@/components/ui/dashboard/Card";
-import { User, Clock, Calendar, Share2, AlertTriangle } from "lucide-react";
+import { Share2, AlertTriangle } from "lucide-react";
 import { toast } from 'react-hot-toast';
-import { format, formatDistanceToNow, isAfter, isBefore } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+
+interface Problem {
+  _id: string;
+  title: string;
+  difficulty?: string;
+}
+
+interface Participant {
+  userId: string;
+  joinedAt: string;
+}
 
 interface ContestData {
   _id: string;
@@ -16,11 +27,8 @@ interface ContestData {
   startTime: string;
   endTime: string;
   duration: number;
-  participants: {
-    userId: string;
-    joinedAt: string;
-  }[];
-  problems?: any[];
+  participants: Participant[];
+  problems?: Problem[];
   isRated: boolean;
   tags?: string[];
   rules?: string;
@@ -32,6 +40,12 @@ interface ContestData {
   status?: 'upcoming' | 'live' | 'past';
 }
 
+interface UserData {
+  _id: string;
+  username?: string;
+  role?: string;
+}
+
 const ContestDetailsPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
@@ -40,7 +54,7 @@ const ContestDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [contest, setContest] = useState<ContestData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [contestCountdown, setContestCountdown] = useState<string>('');
 
@@ -90,7 +104,7 @@ const ContestDetailsPage: React.FC = () => {
           
           // Check if user has already joined
           const hasJoined = userData && contestData.participants?.some(
-            (p: any) => p.userId === userData._id
+            (p: Participant) => p.userId === userData._id
           );
           
           setContest({

@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
-import { Upload, X } from 'lucide-react';
+import { Upload} from 'lucide-react';
 
 interface ContestBackgroundUploadProps {
   contestId: string;
