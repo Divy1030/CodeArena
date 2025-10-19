@@ -94,7 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <nav className="px-6 py-4 border-b bg-gray-900 border-gray-700 md:px-0">
+    <nav className="px-6 py-4 bg-gray-900 md:px-0">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-4">
           <Image 
