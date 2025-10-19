@@ -26,6 +26,7 @@
     "@react-three/fiber": "^9.1.2",
     "@react-three/rapier": "^2.1.0",
     "@reduxjs/toolkit": "^2.7.0",
+    "@splinetool/react-spline": "^4.1.0",
     "@types/three": "^0.176.0",
     "@uiw/react-codemirror": "^4.23.10",
     "autoprefixer": "^10.4.21",
@@ -54,6 +55,7 @@
     "redux-persist": "^6.0.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "spline": "^0.0.0",
     "tailwind-merge": "^3.3.0",
     "three": "^0.176.0",
     "zod": "^3.24.3"

@@ -2,7 +2,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import CanvasLogin from '@/components/Custom/CanvasLogin';
+import SplineAuth from '@/components/Custom/SplineAuth';
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -13,12 +13,12 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     
     return (
         <div className="flex min-h-screen">
-            <div className="hidden md:flex md:w-1/2 bg-blue-50 relative items-center justify-center overflow-hidden">
+            <div className="hidden md:flex md:w-1/2 bg-purple-200 relative items-center justify-center overflow-hidden">
                 <div className="canvas-container w-full h-full">
-                    <CanvasLogin />
+                    <SplineAuth />
                 </div>
             </div>
-            <div className="w-full md:w-1/2 flex items-center justify-center p-6">
+            <div className="w-full bg-purple-100 md:w-1/2 flex items-center justify-center p-6">
                 <div className="w-full max-w-md">
                     {/* <div className="mb-8 text-center">
                         <h1 className="text-2xl font-bold">Code-Up</h1>
@@ -27,17 +27,17 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                         </p>
                     </div> */}
                     
-                    <div className="bg-white rounded-lg shadow-md p-8">
+                    <div className="rounded-lg shadow-lg p-8" style={{ backgroundColor: '#ffffff' }}>
                         <div className="flex justify-center space-x-4 mb-6">
                             <Link 
                                 href="/login" 
-                                className={`px-4 py-2 ${pathname === '/auth/login' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+                                className={`px-4 py-2 ${pathname === '/login' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
                             >
                                 Login
                             </Link>
                             <Link 
                                 href="/register" 
-                                className={`px-4 py-2 ${pathname === '/auth/register' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+                                className={`px-4 py-2 ${pathname === '/register' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
                             >
                                 Register
                             </Link>

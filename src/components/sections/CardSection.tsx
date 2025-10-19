@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import CardSwap, { Card } from "@/components/bits/Card";
 
 export default function CardSection() {
@@ -36,10 +37,12 @@ export default function CardSection() {
               <Card customClass="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 shadow-xl">
                 <div className="p-8 h-full flex flex-col justify-center">
                   <div className="mb-4 relative h-24 w-full rounded-lg overflow-hidden bg-gray-950">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=600&h=200&fit=crop&crop=top"
                       alt="Coding contest"
-                      className="w-full h-full object-cover opacity-80"
+                      fill
+                      className="object-cover opacity-80"
+                      sizes="(max-width: 768px) 100vw, 600px"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20"></div>
                   </div>
@@ -58,10 +61,12 @@ export default function CardSection() {
               <Card customClass="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 shadow-xl">
                 <div className="p-8 h-full flex flex-col justify-center">
                   <div className="mb-4 relative h-24 w-full rounded-lg overflow-hidden bg-slate-950">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=200&fit=crop&crop=center"
                       alt="Algorithm code"
-                      className="w-full h-full object-cover opacity-80"
+                      fill
+                      className="object-cover opacity-80"
+                      sizes="(max-width: 768px) 100vw, 600px"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20"></div>
                   </div>
@@ -77,7 +82,7 @@ export default function CardSection() {
               </Card>
 
               {/* Card 3 - Progress Tracking */}
-              <Card customClass="bg-gradient-to-br from-zinc-900 to-zinc-800 border  shadow-xl">
+              <Card customClass="bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 shadow-xl">
                 <div className="p-8 h-full flex flex-col justify-center">
                   <h3 className="text-2xl font-bold text-white mb-4">
                     Progress Tracking
@@ -91,13 +96,15 @@ export default function CardSection() {
               </Card>
 
               {/* Card 4 - Expert Mentorship */}
-              <Card customClass="bg-gradient-to-br from-neutral-900 to-neutral-800  shadow-xl">
+              <Card customClass="bg-gradient-to-br from-neutral-900 to-neutral-800 border border-neutral-700 shadow-xl">
                 <div className="p-8 h-full flex flex-col justify-center">
                   <div className="mb-4 relative h-24 w-full rounded-lg overflow-hidden bg-neutral-950">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=200&fit=crop&crop=center"
                       alt="Code mentorship"
-                      className="w-full h-full object-cover opacity-80"
+                      fill
+                      className="object-cover opacity-80"
+                      sizes="(max-width: 768px) 100vw, 600px"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20"></div>
                   </div>
@@ -112,13 +119,15 @@ export default function CardSection() {
               </Card>
 
               {/* Card 5 - Code Reviews */}
-              <Card customClass="bg-gradient-to-br from-stone-900 to-stone-800  shadow-xl">
+              <Card customClass="bg-gradient-to-br from-stone-900 to-stone-800 border border-stone-700 shadow-xl">
                 <div className="p-8 h-full flex flex-col justify-center">
                   <div className="mb-4 relative h-24 w-full rounded-lg overflow-hidden bg-stone-950">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=200&fit=crop&crop=center"
                       alt="Code review screen"
-                      className="w-full h-full object-cover opacity-80"
+                      fill
+                      className="object-cover opacity-80"
+                      sizes="(max-width: 768px) 100vw, 600px"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-orange-500/20"></div>
                   </div>
