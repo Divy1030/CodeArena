@@ -5,8 +5,31 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       "res.cloudinary.com",
-      // Keep any other domains you already have listed here
+      "lh3.googleusercontent.com",
+      "images.unsplash.com",
+      "avatars.githubusercontent.com",
+      "cdn.pixabay.com"
     ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/a/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      }
+    ]
   },
   // Any other existing configuration...
 };

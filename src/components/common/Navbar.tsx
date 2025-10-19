@@ -23,7 +23,21 @@ const Navbar: React.FC<NavbarProps> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
+  const [actualUserData, setActualUserData] = useState<any>(null);
   const pathname = usePathname();
+
+  // Load user data from localStorage
+  useEffect(() => {
+    try {
+      const storedUserData = localStorage.getItem('userData');
+      if (storedUserData) {
+        const parsedUserData = JSON.parse(storedUserData);
+        setActualUserData(parsedUserData);
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
+    }
+  }, []);
 
   // Close menus when pathname changes (navigation occurs)
   useEffect(() => {
@@ -49,7 +63,9 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   // Get user's first initial for fallback avatar
-  const userInitial = username ? username.charAt(0).toUpperCase() : (isAdmin ? 'A' : 'U');
+  const displayUsername = actualUserData?.username || username;
+  const profilePicture = actualUserData?.profile?.avatarUrl || userProfilePicture;
+  const userInitial = displayUsername ? displayUsername.charAt(0).toUpperCase() : (isAdmin ? 'A' : 'U');
 
   // Define navigation items for authenticated users
   const getNavItems = () => {
@@ -71,16 +87,17 @@ const Navbar: React.FC<NavbarProps> = ({
 
   // Render profile avatar (image or fallback)
   const renderProfileAvatar = () => {
-    if (userProfilePicture && !imageError) {
+    if (profilePicture && !imageError) {
       return (
         <div className="relative w-8 h-8 rounded-full overflow-hidden">
           <Image 
-            src={userProfilePicture}
-            alt={username || "User profile"}
+            src={profilePicture}
+            alt={displayUsername || "User profile"}
             fill
             sizes="32px"
             className="object-cover"
             onError={() => setImageError(true)}
+            unoptimized={profilePicture.includes('googleusercontent.com')}
           />
         </div>
       );
@@ -154,7 +171,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 className="flex items-center gap-2 text-gray-300 hover:text-white"
               >
                 {renderProfileAvatar()}
-                <span className="hidden lg:inline">{isAdmin ? 'Admin' : username || 'Profile'}</span>
+                <span className="hidden lg:inline">{isAdmin ? 'Admin' : displayUsername || 'Profile'}</span>
               </button>
               
               {isProfileOpen && (
