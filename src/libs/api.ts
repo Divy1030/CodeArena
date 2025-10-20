@@ -74,6 +74,8 @@ const endpoints = {
     suggestedUsers: `${API_BASE_URL}/api/v1/social/suggested-users`,
     searchUsers: `${API_BASE_URL}/api/v1/social/search-users`,
     followUser: `${API_BASE_URL}/api/v1/social/follow`,
+    followers: `${API_BASE_URL}/api/v1/social/followers`,
+    following: `${API_BASE_URL}/api/v1/social/following`,
   },
 };
 

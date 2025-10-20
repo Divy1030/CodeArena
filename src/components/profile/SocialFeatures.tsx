@@ -2,9 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { FaSearch, FaUserPlus, FaUserMinus, FaUsers } from 'react-icons/fa';
+import { FaSearch, FaUserPlus, FaUserMinus, FaUsers, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Image from 'next/image';
+import { useAppDispatch, useAppSelector } from '@/store/hooks'; // Updated import
+import {
+  fetchSuggestedUsers,
+  searchUsers,
+  followUnfollowUser,
+  clearSearchResults,
+  toggleShowAllSuggested,
+  clearError
+} from '@/store/socialSlice';
 
 interface User {
   _id: string;
@@ -20,136 +29,58 @@ interface SocialFeaturesProps {
 }
 
 const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
+  const dispatch = useAppDispatch(); // Updated hook
+  const { 
+    suggestedUsers, 
+    searchResults, 
+    loading, 
+    error, 
+    showAllSuggested 
+  } = useAppSelector((state) => state.social); // Updated hook
+
   const [activeTab, setActiveTab] = useState<'search' | 'suggested'>('search');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
 
   // Fetch suggested users on component mount
   useEffect(() => {
-    fetchSuggestedUsers();
-  }, []);
+    dispatch(fetchSuggestedUsers());
+  }, [dispatch]);
 
-  const fetchSuggestedUsers = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      
-      if (!token) {
-        toast.error('No authentication token found. Please login again.');
-        return;
-      }
-
-      const response = await fetch('/api/social/suggested-users', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setSuggestedUsers(result.data || []);
-      } else {
-        toast.error(result.message || 'Failed to fetch suggested users');
-      }
-    } catch (error) {
-      console.error('Error fetching suggested users:', error);
-      toast.error('Failed to load suggested users');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
     }
-  };
+  }, [error, dispatch]);
 
-  const searchUsers = async () => {
+  const handleSearchUsers = () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a username to search');
       return;
     }
-
-    try {
-      setSearchLoading(true);
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      
-      const response = await fetch('/api/social/search-users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ username: searchQuery.trim() })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setSearchResults(result.data || []);
-        if (result.data.length === 0) {
-          toast.success('No users found with that username');
-        }
-      } else {
-        toast.error(result.message || 'Failed to search users');
-        setSearchResults([]);
-      }
-    } catch (error) {
-      console.error('Error searching users:', error);
-      toast.error('Failed to search users');
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
+    dispatch(searchUsers(searchQuery));
   };
 
-  const handleFollowUnfollow = async (userId: string, isCurrentlyFollowing: boolean) => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      
-      const response = await fetch('/api/social/follow', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ targetUserId: userId })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
+  const handleFollowUnfollow = (userId: string, isCurrentlyFollowing: boolean) => {
+    dispatch(followUnfollowUser({ targetUserId: userId, isCurrentlyFollowing }))
+      .unwrap()
+      .then((result) => {
         toast.success(result.message);
-        
-        // Update the UI
-        if (activeTab === 'search') {
-          setSearchResults(prev => prev.map(user => 
-            user._id === userId 
-              ? { ...user, isFollowing: !isCurrentlyFollowing }
-              : user
-          ));
-        } else {
-          setSuggestedUsers(prev => prev.map(user => 
-            user._id === userId 
-              ? { ...user, isFollowing: !isCurrentlyFollowing }
-              : user
-          ));
-        }
-      } else {
-        toast.error(result.message || 'Failed to update follow status');
-      }
-    } catch (error) {
-      console.error('Error following/unfollowing user:', error);
-      toast.error('Failed to update follow status');
-    }
+      })
+      .catch((error) => {
+        toast.error(error);
+      });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      searchUsers();
+      handleSearchUsers();
     }
   };
+
+  // Show only 5 suggested users initially, or all if expanded
+  const displayedSuggestedUsers = showAllSuggested ? suggestedUsers : suggestedUsers.slice(0, 5);
+  const hasMoreSuggested = suggestedUsers.length > 5;
 
   const UserCard: React.FC<{ user: User; index: number }> = ({ user }) => (
     <div className="flex items-center justify-between p-4 bg-[#1a2332] rounded-lg hover:bg-[#1e2738] transition-colors">
@@ -184,13 +115,19 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
       {user._id !== currentUserId && (
         <button
           onClick={() => handleFollowUnfollow(user._id, user.isFollowing || false)}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          disabled={loading.followAction}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
             user.isFollowing
               ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
         >
-          {user.isFollowing ? (
+          {loading.followAction ? (
+            <span className="flex items-center">
+              <LoadingSpinner />
+              <span className="ml-2">...</span>
+            </span>
+          ) : user.isFollowing ? (
             <>
               <FaUserMinus className="inline mr-1" />
               Unfollow
@@ -233,7 +170,7 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
               : 'bg-[#1a2332] text-gray-400 hover:text-white'
           }`}
         >
-          Suggested
+          Suggested ({suggestedUsers.length})
         </button>
       </div>
 
@@ -253,21 +190,21 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
               />
             </div>
             <button
-              onClick={searchUsers}
-              disabled={searchLoading}
+              onClick={handleSearchUsers}
+              disabled={loading.search}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {searchLoading ? 'Searching...' : 'Search'}
+              {loading.search ? 'Searching...' : 'Search'}
             </button>
           </div>
 
-          {searchLoading && (
+          {loading.search && (
             <div className="flex justify-center py-4">
               <LoadingSpinner />
             </div>
           )}
 
-          {!searchLoading && searchResults.length > 0 && (
+          {!loading.search && searchResults.length > 0 && (
             <div className="space-y-3">
               {searchResults.map((user, index) => (
                 <UserCard key={user._id} user={user} index={index} />
@@ -275,10 +212,19 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
             </div>
           )}
 
-          {!searchLoading && searchQuery && searchResults.length === 0 && (
+          {!loading.search && searchQuery && searchResults.length === 0 && (
             <p className="text-gray-400 text-center py-4">
               No users found. Try a different username.
             </p>
+          )}
+
+          {searchResults.length > 0 && (
+            <button
+              onClick={() => dispatch(clearSearchResults())}
+              className="w-full py-2 bg-[#1a2332] text-gray-400 rounded-lg hover:bg-[#1e2738] hover:text-white transition-colors"
+            >
+              Clear Results
+            </button>
           )}
         </div>
       )}
@@ -286,32 +232,54 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
       {/* Suggested Tab */}
       {activeTab === 'suggested' && (
         <div className="space-y-4">
-          {loading && (
+          {loading.suggested && (
             <div className="flex justify-center py-4">
               <LoadingSpinner />
             </div>
           )}
 
-          {!loading && suggestedUsers.length > 0 && (
-            <div className="space-y-3">
-              {suggestedUsers.map((user, index) => (
-                <UserCard key={user._id} user={user} index={index} />
-              ))}
-            </div>
+          {!loading.suggested && displayedSuggestedUsers.length > 0 && (
+            <>
+              <div className="space-y-3">
+                {displayedSuggestedUsers.map((user, index) => (
+                  <UserCard key={user._id} user={user} index={index} />
+                ))}
+              </div>
+
+              {/* Show More/Less Button */}
+              {hasMoreSuggested && (
+                <button
+                  onClick={() => dispatch(toggleShowAllSuggested())}
+                  className="w-full py-2 bg-[#1a2332] text-blue-400 rounded-lg hover:bg-[#1e2738] hover:text-blue-300 transition-colors flex items-center justify-center"
+                >
+                  {showAllSuggested ? (
+                    <>
+                      <FaChevronUp className="mr-2" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <FaChevronDown className="mr-2" />
+                      Show More ({suggestedUsers.length - 5} more)
+                    </>
+                  )}
+                </button>
+              )}
+            </>
           )}
 
-          {!loading && suggestedUsers.length === 0 && (
+          {!loading.suggested && suggestedUsers.length === 0 && (
             <p className="text-gray-400 text-center py-4">
               No suggested users available at the moment.
             </p>
           )}
 
           <button
-            onClick={fetchSuggestedUsers}
-            disabled={loading}
+            onClick={() => dispatch(fetchSuggestedUsers())}
+            disabled={loading.suggested}
             className="w-full py-2 bg-[#1a2332] text-gray-400 rounded-lg hover:bg-[#1e2738] hover:text-white transition-colors disabled:opacity-50"
           >
-            {loading ? 'Refreshing...' : 'Refresh Suggestions'}
+            {loading.suggested ? 'Refreshing...' : 'Refresh Suggestions'}
           </button>
         </div>
       )}

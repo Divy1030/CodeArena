@@ -238,7 +238,7 @@ const UserProfilePage = () => {
                   )}
                   
                   {/* Following/Followers List */}
-                  <FollowingList userData={userData} />
+                  <FollowingList currentUserId={userData._id} />
                   
                   {/* Social Features - Search and Suggested Users */}
                   <SocialFeatures currentUserId={userData._id} />
