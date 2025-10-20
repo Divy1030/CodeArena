@@ -69,7 +69,12 @@ const endpoints = {
   code: {
     run: `${API_BASE_URL}/api/v1/code/execute`,
     runAllTestCases: `${API_BASE_URL}/api/v1/code/execute-all`,
-  }
+  },
+  social: {
+    suggestedUsers: `${API_BASE_URL}/api/v1/social/suggested-users`,
+    searchUsers: `${API_BASE_URL}/api/v1/social/search-users`,
+    followUser: `${API_BASE_URL}/api/v1/social/follow`,
+  },
 };
 
 export default endpoints;

@@ -19,10 +19,6 @@ interface SocialFeaturesProps {
   currentUserId: string;
 }
 
-interface FetchError extends Error {
-  message: string;
-}
-
 const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
   const [activeTab, setActiveTab] = useState<'search' | 'suggested'>('search');
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,16 +35,14 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
   const fetchSuggestedUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       
       if (!token) {
         toast.error('No authentication token found. Please login again.');
         return;
       }
 
-      console.log('Fetching suggested users...');
-      
-      const response = await fetch('/api/user/suggested-users', {
+      const response = await fetch('/api/social/suggested-users', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -56,30 +50,16 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
         }
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response content-type:', response.headers.get('content-type'));
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Error response:', errorData);
-        throw new Error(`HTTP ${response.status}: ${errorData.substring(0, 100)}`);
-      }
-
       const result = await response.json();
-      console.log('Suggested users result:', result);
       
       if (result.success) {
         setSuggestedUsers(result.data || []);
-        if (result.data?.length === 0) {
-          console.log('No suggested users found');
-        }
       } else {
         toast.error(result.message || 'Failed to fetch suggested users');
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error fetching suggested users:', error);
-      const fetchError = error as FetchError;
-      toast.error(`Failed to load suggested users: ${fetchError.message}`);
+      toast.error('Failed to load suggested users');
     } finally {
       setLoading(false);
     }
@@ -93,9 +73,9 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
 
     try {
       setSearchLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       
-      const response = await fetch('/api/user/search-friends', {
+      const response = await fetch('/api/social/search-users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,21 +106,21 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
 
   const handleFollowUnfollow = async (userId: string, isCurrentlyFollowing: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       
-      const response = await fetch('/api/user/follow', {
+      const response = await fetch('/api/social/follow', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ idOfWhomWeAreFollowing: userId })
+        body: JSON.stringify({ targetUserId: userId })
       });
 
       const result = await response.json();
       
       if (result.success) {
-        toast.success(result.message || (isCurrentlyFollowing ? 'Unfollowed successfully' : 'Followed successfully'));
+        toast.success(result.message);
         
         // Update the UI
         if (activeTab === 'search') {
@@ -290,7 +270,7 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
           {!searchLoading && searchResults.length > 0 && (
             <div className="space-y-3">
               {searchResults.map((user, index) => (
-                <UserCard key={user._id || `search-${index}`} user={user} index={index} />
+                <UserCard key={user._id} user={user} index={index} />
               ))}
             </div>
           )}
@@ -315,7 +295,7 @@ const SocialFeatures: React.FC<SocialFeaturesProps> = ({ currentUserId }) => {
           {!loading && suggestedUsers.length > 0 && (
             <div className="space-y-3">
               {suggestedUsers.map((user, index) => (
-                <UserCard key={user._id || `suggested-${index}`} user={user} index={index} />
+                <UserCard key={user._id} user={user} index={index} />
               ))}
             </div>
           )}
