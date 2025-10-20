@@ -5,7 +5,7 @@ import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import HeroSection from "@/components/sections/HeroSection";
 import FlowingMenuSection from "@/components/sections/FlowingMenuSection";
-import CardSection from "@/components/sections/CardSection";
+import { WobbleCardDemo } from "@/components/bits/Bento";
 
 export default function Home() {
   return (
@@ -19,7 +19,11 @@ export default function Home() {
       {/* FlowingMenu Section - Black background */}
       <FlowingMenuSection />
       {/* Card Swap Section */}
-      <CardSection />
+      {/* <CardSection /> */}
+      {/* Bento Section */}
+      <section className="py-16 px-4 bg-black">
+        <WobbleCardDemo />
+      </section>
       {/* Footer */}
       <Footer />
     </div>

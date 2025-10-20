@@ -215,7 +215,7 @@ const UserHome: React.FC = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#0f172a] text-white">
+      <div className="min-h-screen bg-[#192134] text-white">
         {/* Hero */}
         <div className="flex flex-col md:flex-row justify-between items-center px-24 py-12">
           <div className="max-w-xl">
@@ -240,7 +240,7 @@ const UserHome: React.FC = () => {
           </div>
           <div className="relative w-[427px] h-[427px] mt-10 md:mt-0">
             <Image
-              src="/images/dashboard/user/UserHome.webp"
+              src="/images/dashboard/user/HomeAnimation.svg"
               alt="Coding Illustration"
               fill
               className="object-contain"

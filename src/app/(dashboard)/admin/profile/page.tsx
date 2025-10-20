@@ -42,6 +42,7 @@ interface AdminData {
   };
   createdAt?: string;
   updatedAt?: string;
+  isGoogleUser?: boolean; // Add this field
 }
 
 const AdminProfilePage = () => {
@@ -184,9 +185,6 @@ const AdminProfilePage = () => {
     }
   };
 
-  // Add special handling for Google login users
-  const isGoogleUser = adminData && !adminData.password;
-  
   // Add handler for profile picture update
   const handleProfilePictureUpdate = (newImageUrl: string) => {
     // Update the admin data with the new profile picture
@@ -209,6 +207,10 @@ const AdminProfilePage = () => {
       }
     }
   };
+
+  // Determine if user is Google user and has password
+  const isGoogleUser = adminData && (adminData.isGoogleUser || !adminData.password);
+  const hasPassword = adminData && !!adminData.password;
 
   return (
     <ProtectedRoute adminOnly>
@@ -233,7 +235,7 @@ const AdminProfilePage = () => {
               <AdminProfileHeader 
                 admin={adminData} 
                 onLogout={handleLogout}
-                onProfileUpdate={handleProfilePictureUpdate} // Add this prop
+                onProfileUpdate={handleProfilePictureUpdate}
               />
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
@@ -241,16 +243,11 @@ const AdminProfilePage = () => {
                   <AdminContests contests={adminData.contestsCreated || []} />
                 </div>
                 <div className="lg:col-span-1">
-                  {isGoogleUser ? (
-                    <div className="bg-[#121B38] rounded-xl p-6">
-                      <h3 className="text-lg font-medium mb-4">Security Settings</h3>
-                      <p className="text-gray-400">
-                        You signed in with Google. Password management is not available for Google accounts.
-                      </p>
-                    </div>
-                  ) : (
-                    <SecuritySettings onPasswordChange={handlePasswordChange} />
-                  )}
+                  <SecuritySettings 
+                    onPasswordChange={handlePasswordChange}
+                    isGoogleAccount={!!isGoogleUser}
+                    hasPassword={!!hasPassword}
+                  />
                 </div>
               </div>
             </div>

@@ -51,6 +51,7 @@ const endpoints = {
   user: {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`,
     changePassword: `${API_BASE_URL}/api/v1/auth/change-password`,
+    createPassword: `${API_BASE_URL}/api/v1/auth/create-password`,
     getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`,
     uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
     getUserById: `${API_BASE_URL}/api/v1/auth`,
@@ -69,7 +70,14 @@ const endpoints = {
   code: {
     run: `${API_BASE_URL}/api/v1/code/execute`,
     runAllTestCases: `${API_BASE_URL}/api/v1/code/execute-all`,
-  }
+  },
+  social: {
+    suggestedUsers: `${API_BASE_URL}/api/v1/social/suggested-users`,
+    searchUsers: `${API_BASE_URL}/api/v1/social/search-users`,
+    followUser: `${API_BASE_URL}/api/v1/social/follow`,
+    followers: `${API_BASE_URL}/api/v1/social/followers`,
+    following: `${API_BASE_URL}/api/v1/social/following`,
+  },
 };
 
 export default endpoints;

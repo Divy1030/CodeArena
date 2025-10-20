@@ -33,6 +33,8 @@ interface UserData {
   profilePicture?: string;
   password?: string;
   rating: number;
+  isGoogleAccount?: boolean;
+  hasPassword?: boolean;
   contestsParticipated?: Contest[];
   solvedProblems?: Array<{
     problemId?: { _id: string; title: string; difficulty?: string } | string;
@@ -182,7 +184,7 @@ const UserProfilePage = () => {
   };
 
   // Add special handling for Google login users
-  const isGoogleUser = userData && !userData.password;
+  // const isGoogleUser = userData && !userData.password;
 
   const handleProfilePictureUpdate = (newImageUrl: string) => {
     // Update the user data with the new profile picture
@@ -226,19 +228,14 @@ const UserProfilePage = () => {
                 </div>
                 <div className="lg:col-span-1 space-y-8">
                   {/* Security Settings */}
-                  {isGoogleUser ? (
-                    <div className="bg-[#121B38] rounded-xl p-6">
-                      <h3 className="text-lg font-medium mb-4">Security Settings</h3>
-                      <p className="text-gray-400">
-                        You signed in with Google. Password management is not available for Google accounts.
-                      </p>
-                    </div>
-                  ) : (
-                    <SecuritySettings onPasswordChange={handlePasswordChange} />
-                  )}
+                  <SecuritySettings 
+                    onPasswordChange={handlePasswordChange}
+                    isGoogleAccount={userData.isGoogleAccount || false}
+                    hasPassword={userData.hasPassword || false}
+                  />
                   
                   {/* Following/Followers List */}
-                  <FollowingList userData={userData} />
+                  <FollowingList currentUserId={userData._id} />
                   
                   {/* Social Features - Search and Suggested Users */}
                   <SocialFeatures currentUserId={userData._id} />
