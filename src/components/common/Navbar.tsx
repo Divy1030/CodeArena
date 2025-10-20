@@ -159,12 +159,12 @@ const Navbar: React.FC<NavbarProps> = ({
             </>
           ) : (
             <div className="relative flex items-center gap-4">
-              <button className="text-gray-300 hover:text-white relative">
+              {/* <button className="text-gray-300 hover:text-white relative">
                 <Bell size={20} />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                   3
                 </span>
-              </button>
+              </button> */}
               
               <button 
                 onClick={toggleProfileMenu} 

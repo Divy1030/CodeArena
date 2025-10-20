@@ -215,7 +215,7 @@ const UserHome: React.FC = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#0f172a] text-white">
+      <div className="min-h-screen bg-[#192134] text-white">
         {/* Hero */}
         <div className="flex flex-col md:flex-row justify-between items-center px-24 py-12">
           <div className="max-w-xl">
