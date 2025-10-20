@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/dashboard/Card';
-import { Button } from '@/components/ui/dashboard/button';
 import { Lock, Eye, EyeOff, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 

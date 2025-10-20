@@ -54,7 +54,7 @@ const ContestForm = () => {
   // Update end time when start time or duration changes
   useEffect(() => {
     calculateEndTime();
-  }, [formData.startTime, formData.duration]);
+  }, [formData.startTime, formData.duration,calculateEndTime]);
 
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const tags: string[] = e.target.value.split(',').map((tag: string) => tag.trim());

@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 interface User {
   _id: string;
@@ -66,8 +66,9 @@ export const fetchSuggestedUsers = createAsyncThunk(
       if (!result.success) throw new Error(result.message);
       
       return result.data || [];
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -92,8 +93,9 @@ export const searchUsers = createAsyncThunk(
       if (!result.success) throw new Error(result.message);
       
       return result.data || [];
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -117,8 +119,9 @@ export const fetchFollowers = createAsyncThunk(
       if (!result.success) throw new Error(result.message);
       
       return result.data || [];
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -142,15 +145,16 @@ export const fetchFollowing = createAsyncThunk(
       if (!result.success) throw new Error(result.message);
       
       return result.data || [];
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
 export const followUnfollowUser = createAsyncThunk(
   'social/followUnfollowUser',
-  async ({ targetUserId, isCurrentlyFollowing }: { targetUserId: string; isCurrentlyFollowing: boolean }, { rejectWithValue }) => {
+  async ({ targetUserId }: { targetUserId: string; isCurrentlyFollowing: boolean }, { rejectWithValue }) => {
     try {
       const token = getAuthToken();
       if (!token) throw new Error('No authentication token');
@@ -168,8 +172,9 @@ export const followUnfollowUser = createAsyncThunk(
       if (!result.success) throw new Error(result.message);
       
       return { targetUserId, action: result.data?.action, message: result.message };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );

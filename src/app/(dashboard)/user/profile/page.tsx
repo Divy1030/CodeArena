@@ -184,7 +184,7 @@ const UserProfilePage = () => {
   };
 
   // Add special handling for Google login users
-  const isGoogleUser = userData && !userData.password;
+  // const isGoogleUser = userData && !userData.password;
 
   const handleProfilePictureUpdate = (newImageUrl: string) => {
     // Update the user data with the new profile picture

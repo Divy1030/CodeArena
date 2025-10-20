@@ -264,7 +264,7 @@ const ManageableContests: React.FC<ManageableContestsProps> = ({ userId }) => {
       
       {/* Improved Contests List */}
       <div className="space-y-3">
-        {activeContests.slice(0, 3).map((contest, index) => {
+        {activeContests.slice(0, 3).map((contest,) => {
           const statusConfig = getStatusConfig(contest.status || '');
           
           return (

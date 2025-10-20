@@ -35,10 +35,10 @@ export function WobbleCardDemo() {
               <span className="text-blue-400">int</span>{" "}
               <span className="text-yellow-400">main</span>(){"{"}
               <br />
-              &nbsp;&nbsp;
-              <span className="text-gray-400">// Your solution here</span>
+              {"    "}
+              <span className="text-gray-400">{"// Your solution here"}</span>
               <br />
-              &nbsp;&nbsp;
+              {"    "}
               <span className="text-blue-400">return</span>{" "}
               <span className="text-orange-400">0</span>;
               <br />
@@ -80,27 +80,27 @@ export function WobbleCardDemo() {
 
             <div className="bg-gray-800 rounded-lg p-3 md:p-4 mb-2 md:mb-3">
               <div className="text-green-400 font-mono text-xs sm:text-sm">
-            <span className="text-gray-500">1</span>{" "}
-            <span className="text-purple-400">def</span>{" "}
-            <span className="text-yellow-400">solve</span>(
-            <span className="text-blue-400">arr</span>):<br />
-            <span className="text-gray-500">2</span>{" "}
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <span className="text-blue-400">return</span>{" "}
-            <span className="text-yellow-400">max</span>(
-            <span className="text-blue-400">arr</span>)<br />
-            <span className="text-gray-500">3</span> <br />
-            <span className="text-gray-500">4</span>{" "}
-            <span className="text-yellow-400">print</span>(
-            <span className="text-yellow-400">solve</span>([
-            <span className="text-orange-400">1,2,3,4,5</span>]))
+                <span className="text-gray-500">1</span>{" "}
+                <span className="text-purple-400">def</span>{" "}
+                <span className="text-yellow-400">solve</span>(
+                <span className="text-blue-400">arr</span>):<br />
+                <span className="text-gray-500">2</span>{" "}
+                {"        "}
+                <span className="text-blue-400">return</span>{" "}
+                <span className="text-yellow-400">max</span>(
+                <span className="text-blue-400">arr</span>)<br />
+                <span className="text-gray-500">3</span> <br />
+                <span className="text-gray-500">4</span>{" "}
+                <span className="text-yellow-400">print</span>(
+                <span className="text-yellow-400">solve</span>([
+                <span className="text-orange-400">1,2,3,4,5</span>]))
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full"></div>
-            <span className="text-green-400">Accepted</span>
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full"></div>
+                <span className="text-green-400">Accepted</span>
               </div>
               <div className="text-gray-400">Runtime: 42ms</div>
               <div className="text-gray-400 hidden sm:block">Memory: 14.2MB</div>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LogOut, User, Settings, Bell } from 'lucide-react';
+import { LogOut, User, Settings } from 'lucide-react';
 import GooeyNav from '@/components/bits/Goey';
 
 interface NavbarProps {
@@ -12,6 +12,13 @@ interface NavbarProps {
   isAdmin?: boolean;
   userProfilePicture?: string | null;
   username?: string;
+}
+
+interface UserData {
+  username?: string;
+  profile?: {
+    avatarUrl?: string;
+  };
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -23,7 +30,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
-  const [actualUserData, setActualUserData] = useState<any>(null);
+  const [actualUserData, setActualUserData] = useState<UserData | null>(null);
   const pathname = usePathname();
 
   // Load user data from localStorage
@@ -31,7 +38,7 @@ const Navbar: React.FC<NavbarProps> = ({
     try {
       const storedUserData = localStorage.getItem('userData');
       if (storedUserData) {
-        const parsedUserData = JSON.parse(storedUserData);
+        const parsedUserData = JSON.parse(storedUserData) as UserData;
         setActualUserData(parsedUserData);
       }
     } catch (err) {
