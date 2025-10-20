@@ -240,7 +240,7 @@ const UserHome: React.FC = () => {
           </div>
           <div className="relative w-[427px] h-[427px] mt-10 md:mt-0">
             <Image
-              src="/images/dashboard/user/UserHome.webp"
+              src="/images/dashboard/user/HomeAnimation.svg"
               alt="Coding Illustration"
               fill
               className="object-contain"

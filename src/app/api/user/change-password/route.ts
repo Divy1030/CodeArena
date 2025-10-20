@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Add debug logging
     console.log('Attempting to change password with token:', token.substring(0, 10) + '...');
+    console.log('Using endpoint:', endpoints.user.changePassword);
 
     // Validate required fields
     if (!body.oldPassword || !body.newPassword) {
@@ -40,6 +41,21 @@ export async function POST(request: NextRequest) {
         newPassword: body.newPassword
       }),
     });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+    // Check if response is HTML (error page) instead of JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await response.text();
+      console.error('Non-JSON response received:', textResponse.substring(0, 200));
+      
+      return NextResponse.json(
+        { success: false, message: 'Server returned an error page instead of JSON. Check if the endpoint exists.' },
+        { status: 500 }
+      );
+    }
 
     const data = await response.json();
     console.log('Backend change password response:', data);

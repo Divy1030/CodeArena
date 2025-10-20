@@ -51,6 +51,7 @@ const endpoints = {
   user: {
     getUserData: `${API_BASE_URL}/api/v1/auth/get-user-data`,
     changePassword: `${API_BASE_URL}/api/v1/auth/change-password`,
+    createPassword: `${API_BASE_URL}/api/v1/auth/create-password`,
     getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`,
     uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
     getUserById: `${API_BASE_URL}/api/v1/auth`,
