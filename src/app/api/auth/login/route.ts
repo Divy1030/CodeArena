@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
-// import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,17 +51,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Handle different error responses
     if (!response.ok) {
-      return NextResponse.json(
-        { success: false, message: data.message || "Login failed" },
-        { status: response.status }
-      );
+      switch (response.status) {
+        case 400:
+          return NextResponse.json(
+            { success: false, message: data.message || 'Both email and password are required' },
+            { status: 400 }
+          );
+        case 401:
+          return NextResponse.json(
+            { success: false, message: data.message || 'Incorrect password. Please try again.' },
+            { status: 401 }
+          );
+        case 404:
+          return NextResponse.json(
+            { success: false, message: data.message || 'No user found with this email' },
+            { status: 404 }
+          );
+        case 500:
+          return NextResponse.json(
+            { success: false, message: data.message || 'An error occurred during login. Please try again.' },
+            { status: 500 }
+          );
+        default:
+          return NextResponse.json(
+            { success: false, message: data.message || 'Login failed' },
+            { status: response.status }
+          );
+      }
     }
 
     // Create a response object
     const nextResponse = NextResponse.json({
-      success: data.success,
-      message: data.message,
+      success: data.success || true,
+      message: data.message || 'User logged in successfully',
       data: data.data
     });
 
@@ -82,8 +105,18 @@ export async function POST(request: NextRequest) {
     }
 
     return nextResponse;
+
   } catch (error) {
     console.error("Login error:", error);
+    
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return NextResponse.json(
+        { success: false, message: 'Unable to connect to the server. Please try again.' },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }

@@ -69,7 +69,7 @@ function ContestDetailsPage() {
         setStartTimeOnly(('0' + start.getHours()).slice(-2) + ':' + ('0' + start.getMinutes()).slice(-2));
         setEndTimeOnly(('0' + end.getHours()).slice(-2) + ':' + ('0' + end.getMinutes()).slice(-2));
         
-        setContestUrl(`https://codeup.com/contest/${contestId}`);
+        setContestUrl(`https://code-arena-ivory.vercel.app/contest/${contestId}`);
         
         // Set other fields
         setLandingPageTitle(result.data.landingPageTitle || "");

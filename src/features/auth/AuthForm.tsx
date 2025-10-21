@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { CombinedAuthFormSchema } from "@/libs/schema/authSchema";
 import { AuthFormType } from "./types/auth.types";
 import { CombinedFormValues } from "./types/form.types";
@@ -29,6 +30,7 @@ interface AxiosError {
 export default function AuthForm({ type }: AuthFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // Use the combined schema for both login and register
@@ -49,6 +51,10 @@ export default function AuthForm({ type }: AuthFormProps) {
   });
 
   const { register, handleSubmit, setValue, control, formState: { errors } } = form;
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   // Load saved email if available
   useEffect(() => {
@@ -291,22 +297,52 @@ export default function AuthForm({ type }: AuthFormProps) {
           Password
         </label>
         {type === 'register' ? (
-          <CustomInput<CombinedFormValues>
-            name="password"
-            label=""
-            control={control}
-            placeholder="Create a password"
-            type="password"
-            showStrengthChecker={true}
-          />
+          <div className="relative">
+            <CustomInput<CombinedFormValues>
+              name="password"
+              label=""
+              control={control}
+              placeholder="Create a password"
+              type={showPassword ? "text" : "password"}
+              showStrengthChecker={true}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors duration-200"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              tabIndex={0}
+            >
+              {showPassword ? (
+                <EyeOff size={20} className="w-5 h-5" />
+              ) : (
+                <Eye size={20} className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         ) : (
-          <input
-            id="password"
-            type="password"
-            {...register('password')}
-            className="w-full p-2 border rounded-md"
-            placeholder="Enter your password"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              {...register('password')}
+              className="w-full p-2 border rounded-md pr-10"
+              placeholder="Enter your password"
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors duration-200"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              tabIndex={0}
+            >
+              {showPassword ? (
+                <EyeOff size={20} className="w-5 h-5" />
+              ) : (
+                <Eye size={20} className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         )}
         {errors.password && !type.includes('register') && (
           <p className="text-red-500 text-sm mt-1">
