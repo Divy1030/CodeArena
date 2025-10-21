@@ -126,7 +126,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="mt-4">
             <h1 className="text-2xl md:text-3xl font-medium text-white">{contestTitle}</h1>
             <div className="text-blue-400 text-sm mt-1">
-              {`https://codeup.com/contest/${contestId}`}
+              {`https://code-arena-ivory.vercel.app/contest/${contestId}`}
             </div>
           </div>
         </div>
