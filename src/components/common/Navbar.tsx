@@ -122,7 +122,7 @@ const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-4">
           <Image 
-            src="/images/common/logo.webp" 
+            src="/images/common/code-arena-logo.png" 
             alt="CodeArena Logo" 
             width={40} 
             height={40}
