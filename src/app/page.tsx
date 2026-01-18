@@ -1,13 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import HeroSection from "@/components/sections/HeroSection";
 import FlowingMenuSection from "@/components/sections/FlowingMenuSection";
 import { WobbleCardDemo } from "@/components/bits/Bento";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Navbar - positioned above hero section */}
