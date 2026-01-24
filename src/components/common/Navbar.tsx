@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { LogOut, User, Settings } from 'lucide-react';
-import GooeyNav from '@/components/bits/Goey';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { LogOut, User, Settings } from "lucide-react";
+import GooeyNav from "@/components/bits/Goey";
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -21,11 +21,11 @@ interface UserData {
   };
 }
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  isAuthenticated = false, 
+const Navbar: React.FC<NavbarProps> = ({
+  isAuthenticated = false,
   isAdmin = false,
   userProfilePicture = null,
-  username = ''
+  username = "",
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
@@ -36,13 +36,13 @@ const Navbar: React.FC<NavbarProps> = ({
   // Load user data from localStorage
   useEffect(() => {
     try {
-      const storedUserData = localStorage.getItem('userData');
+      const storedUserData = localStorage.getItem("userData");
       if (storedUserData) {
         const parsedUserData = JSON.parse(storedUserData) as UserData;
         setActualUserData(parsedUserData);
       }
     } catch (err) {
-      console.error('Error loading user data:', err);
+      console.error("Error loading user data:", err);
     }
   }, []);
 
@@ -62,17 +62,22 @@ const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogout = () => {
     // Clear auth data
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    
+    localStorage.removeItem("token");
+    localStorage.removeItem("userData");
+
     // Redirect to home page
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   // Get user's first initial for fallback avatar
   const displayUsername = actualUserData?.username || username;
-  const profilePicture = actualUserData?.profile?.avatarUrl || userProfilePicture;
-  const userInitial = displayUsername ? displayUsername.charAt(0).toUpperCase() : (isAdmin ? 'A' : 'U');
+  const profilePicture =
+    actualUserData?.profile?.avatarUrl || userProfilePicture;
+  const userInitial = displayUsername
+    ? displayUsername.charAt(0).toUpperCase()
+    : isAdmin
+      ? "A"
+      : "U";
 
   // Define navigation items for authenticated users
   const getNavItems = () => {
@@ -97,14 +102,14 @@ const Navbar: React.FC<NavbarProps> = ({
     if (profilePicture && !imageError) {
       return (
         <div className="relative w-8 h-8 rounded-full overflow-hidden">
-          <Image 
+          <Image
             src={profilePicture}
             alt={displayUsername || "User profile"}
             fill
             sizes="32px"
             className="object-cover"
             onError={() => setImageError(true)}
-            unoptimized={profilePicture.includes('googleusercontent.com')}
+            unoptimized={profilePicture.includes("googleusercontent.com")}
           />
         </div>
       );
@@ -121,14 +126,21 @@ const Navbar: React.FC<NavbarProps> = ({
     <nav className="px-6 py-4 bg-gray-900 md:px-0">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-4">
-          <Image 
-            src="/images/common/logo.webp" 
-            alt="CodeArena Logo" 
-            width={40} 
-            height={40}
-            priority
-          />
-          <span className="text-xl font-bold text-white">CodeArena</span>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/common/code-arena-logo.png"
+              alt="CodeArena Logo"
+              width={32}
+              height={32}
+            />
+            <Image
+              src="/images/common/logo.png"
+              alt="CodeArena"
+              width={80}
+              height={40}
+              className="object-contain translate-y-1"
+            />
+          </div>
         </Link>
 
         {/* Center navigation with GooeyNav - ONLY for authenticated users */}
@@ -151,14 +163,14 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className="hidden md:flex items-center gap-4">
           {!isAuthenticated ? (
             <>
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="px-4 py-2 rounded-md bg-white text-black border-black hover:bg-gray-300"
               >
                 Sign-Up
               </Link>
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="px-4 py-2 rounded-md bg-white text-black hover:bg-gray-300"
               >
                 Log-In
@@ -172,35 +184,37 @@ const Navbar: React.FC<NavbarProps> = ({
                   3
                 </span>
               </button> */}
-              
-              <button 
-                onClick={toggleProfileMenu} 
+
+              <button
+                onClick={toggleProfileMenu}
                 className="flex items-center gap-2 text-gray-300 hover:text-white"
               >
                 {renderProfileAvatar()}
-                <span className="hidden lg:inline">{isAdmin ? 'Admin' : displayUsername || 'Profile'}</span>
+                <span className="hidden lg:inline">
+                  {isAdmin ? "Admin" : displayUsername || "Profile"}
+                </span>
               </button>
-              
+
               {isProfileOpen && (
                 <div className="absolute right-0 top-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
                   <div className="py-1">
-                    <Link 
-                      href={isAdmin ? "/admin/profile" : "/user/profile"} 
+                    <Link
+                      href={isAdmin ? "/admin/profile" : "/user/profile"}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setIsProfileOpen(false)}
                     >
                       <User size={16} />
                       Profile
                     </Link>
-                    <Link 
-                      href="/settings" 
+                    <Link
+                      href="/settings"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setIsProfileOpen(false)}
                     >
                       <Settings size={16} />
                       Settings
                     </Link>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
                     >
@@ -217,22 +231,33 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile menu button */}
         <div className="md:hidden flex items-center gap-4">
           {isAuthenticated && (
-            <button 
-              onClick={toggleProfileMenu} 
+            <button
+              onClick={toggleProfileMenu}
               className="text-gray-300 hover:text-white"
             >
               {renderProfileAvatar()}
             </button>
           )}
-          
-          <button 
-            onClick={toggleMenu} 
+
+          <button
+            onClick={toggleMenu}
             className="focus:outline-none text-white"
             aria-expanded={isOpen}
             aria-label="Toggle navigation menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}
+              ></path>
             </svg>
           </button>
         </div>
@@ -245,9 +270,9 @@ const Navbar: React.FC<NavbarProps> = ({
             // Only show navigation items for authenticated users
             <>
               {getNavItems().map((item, index) => (
-                <Link 
+                <Link
                   key={index}
-                  href={item.href} 
+                  href={item.href}
                   className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
                   onClick={() => setIsOpen(false)}
                 >
@@ -255,21 +280,21 @@ const Navbar: React.FC<NavbarProps> = ({
                 </Link>
               ))}
               <hr className="border-gray-700 my-2" />
-              <Link 
-                href={isAdmin ? "/admin/profile" : "/user/profile"} 
+              <Link
+                href={isAdmin ? "/admin/profile" : "/user/profile"}
                 className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
                 onClick={() => setIsOpen(false)}
               >
                 Profile
               </Link>
-              <Link 
-                href="/settings" 
+              <Link
+                href="/settings"
                 className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
                 onClick={() => setIsOpen(false)}
               >
                 Settings
               </Link>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-800"
               >
@@ -279,15 +304,15 @@ const Navbar: React.FC<NavbarProps> = ({
           ) : (
             // Only show login/signup for non-authenticated users
             <>
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="block px-4 py-2 rounded-md bg-white text-black hover:bg-gray-300"
                 onClick={() => setIsOpen(false)}
               >
                 Sign-Up
               </Link>
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="block px-4 py-2 rounded-md bg-white text-black hover:bg-gray-300"
                 onClick={() => setIsOpen(false)}
               >
@@ -301,21 +326,21 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile profile menu */}
       {isProfileOpen && isAuthenticated && (
         <div className="md:hidden mt-4 space-y-2">
-          <Link 
-            href={isAdmin ? "/admin/profile" : "/user/profile"} 
+          <Link
+            href={isAdmin ? "/admin/profile" : "/user/profile"}
             className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
             onClick={() => setIsProfileOpen(false)}
           >
             Profile
           </Link>
-          <Link 
-            href="/settings" 
+          <Link
+            href="/settings"
             className="block px-4 py-2 text-gray-300 hover:bg-gray-800"
             onClick={() => setIsProfileOpen(false)}
           >
             Settings
           </Link>
-          <button 
+          <button
             onClick={handleLogout}
             className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-800"
           >
