@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import ReduxProvider from "@/providers/ReduxProvider";
 import GoogleAuthProvider from "@/providers/GoogleOAuthProvider";
+import CookieConsent from '@/components/common/CookieConsent';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
                 },
               }}
             />
+            <CookieConsent />
           </ReduxProvider>
         </GoogleAuthProvider>
       </body>
