@@ -1,23 +1,29 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+
+export interface TestCaseResult {
+  input: string;
+  expectedOutput: string;
+  actualOutput: string;
+  status: 'Passed' | 'Failed' | 'TLE' | 'Runtime Error';
+  timeMs?: number;
+  memoryKb?: number;
+}
 
 export interface ExecutionResult {
-  allPassed: boolean;
-  results: {
-    testCase: number;
-    input: string;
-    expectedOutput: string;
-    actualOutput: string;
-    passed: boolean;
-    stderr: string | null;
-    status: string;
-    time: string;
-    memory: number;
-  }[];
+  status: 'queued' | 'running' | 'completed';
+  mode: 'run' | 'submit';
+  score: number | null;
+  passed: number | null;
+  total: number | null;
+  executionTimeMs: number | null;
+  memoryKb: number | null;
+  results: TestCaseResult[];
 }
 
 export interface ExecutionState {
   isRunning: boolean;
   isSubmitting: boolean;
+  currentJobId: string | null;
   executionResult: ExecutionResult | null;
   executionError: string | null;
 }
@@ -25,38 +31,68 @@ export interface ExecutionState {
 const initialState: ExecutionState = {
   isRunning: false,
   isSubmitting: false,
+  currentJobId: null,
   executionResult: null,
   executionError: null,
+};
+
+// Helper function to poll for results
+const pollForResult = async (jobId: string, maxAttempts = 30): Promise<ExecutionResult> => {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const response = await fetch(`/api/code/result/${jobId}`);
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch result');
+    }
+
+    const result = data.data;
+
+    // If completed, return the result
+    if (result.status === 'completed') {
+      return result;
+    }
+
+    // Wait 1 second before polling again
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  throw new Error('Execution timeout - please try again');
 };
 
 // Async thunk for running code
 export const runCode = createAsyncThunk(
   'execution/runCode',
-  async ({ code, language, testCases }: { code: string; language: string; testCases: any[] }) => {
-    const formattedTestCases = testCases.map(tc => ({
-      input: tc.input,
-      output: tc.expectedOutput
-    }));
-    
-    const response = await fetch('/api/code/run', {
+  async ({ code, language, testCases }: { 
+    code: string; 
+    language: string; 
+    testCases: any[] 
+  }) => {
+    // Step 1: Start execution
+    const runResponse = await fetch('/api/code/run', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         code,
         language,
-        testCases: formattedTestCases
+        testCases: testCases.map(tc => ({
+          input: tc.input,
+          expectedOutput: tc.expectedOutput
+        }))
       }),
     });
-    
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.message || 'Code execution failed');
+
+    const runData = await runResponse.json();
+    if (!runData.success) {
+      throw new Error(runData.message || 'Failed to start code execution');
     }
+
+    const jobId = runData.data.jobId;
+
+    // Step 2: Poll for result
+    const result = await pollForResult(jobId);
     
-    return result;
+    return { jobId, result };
   }
 );
 
@@ -66,78 +102,63 @@ export const submitSolution = createAsyncThunk(
   async ({ 
     code, 
     language, 
-    testCases, 
-    contestId, 
-    problemId, 
-    problemData 
+    testCases,
+    problemId,
+    contestId 
   }: { 
     code: string; 
     language: string; 
     testCases: any[]; 
-    contestId: string; 
-    problemId: string; 
-    problemData: any; 
+    problemId: string;
+    contestId: string;
   }) => {
-    const formattedTestCases = testCases.map(tc => ({
-      input: tc.input,
-      expectedOutput: tc.expectedOutput
-    }));
-    
-    // First execute the code
-    const executeResponse = await fetch('/api/code/execute', {
+    // Step 1: Start submission to code execution service
+    const submitResponse = await fetch('/api/code/submit', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         code,
         language,
-        testCases: formattedTestCases
+        problemId,
+        testCases: testCases.map(tc => ({
+          input: tc.input,
+          expectedOutput: tc.expectedOutput
+        }))
       }),
     });
+
+    const submitData = await submitResponse.json();
+    if (!submitData.success) {
+      throw new Error(submitData.message || 'Failed to submit solution');
+    }
+
+    const jobId = submitData.data.jobId;
+
+    // Step 2: Poll for result
+    const result = await pollForResult(jobId);
     
-    const executeResult = await executeResponse.json();
-    if (!executeResult.success) {
-      throw new Error(executeResult.message || 'Execution failed');
+    // Step 3: Save to database via problem controller
+    if (result.status === 'completed') {
+      const saveResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          score: result.score || 0,
+          solutionCode: code,
+          languageUsed: language,
+          timeOccupied: result.executionTimeMs,
+          memoryOccupied: result.memoryKb,
+          timeGivenOnSolution: Date.now()
+        }),
+      });
+
+      const saveData = await saveResponse.json();
+      if (!saveData.success) {
+        console.error('Failed to save submission to database:', saveData.message);
+      }
     }
     
-    const executionData = executeResult.data || {};
-    const results = Array.isArray(executionData.results) ? executionData.results : [];
-    const totalTests = testCases.length;
-    const passedTests = results.filter((r: any) => r.status === 'Accepted' || r.passed === true).length;
-    const allPassed = passedTests === totalTests;
-    
-    if (!allPassed) {
-      throw new Error(`Your solution passed ${passedTests} out of ${totalTests} test cases. Please fix your code and try again.`);
-    }
-    
-    // Submit the solution
-    const memoryOccupied = results?.[0]?.memory || 1;
-    const timeOccupied = results?.[0]?.time || 1;
-    
-    const submitResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-      },
-      body: JSON.stringify({
-        score: 100,
-        solutionCode: code,
-        languageUsed: language,
-        timeOccupied: Number(timeOccupied),
-        memoryOccupied: Number(memoryOccupied),
-        timeGivenOnSolution: (new Date().getTime() - new Date(problemData?.startTime || Date.now()).getTime()) / 1000
-      }),
-    });
-    
-    const submitResult = await submitResponse.json();
-    if (!submitResult.success) {
-      throw new Error(submitResult.message || 'Submission failed');
-    }
-    
-    return submitResult;
+    return { jobId, result };
   }
 );
 
@@ -147,7 +168,7 @@ const executionSlice = createSlice({
   reducers: {
     clearExecutionResult: (state) => {
       state.executionResult = null;
-      state.executionError = null;
+      state.currentJobId = null;
     },
     clearExecutionError: (state) => {
       state.executionError = null;
@@ -155,49 +176,35 @@ const executionSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Run code cases
+      // Run Code
       .addCase(runCode.pending, (state) => {
         state.isRunning = true;
         state.executionError = null;
+        state.executionResult = null;
       })
       .addCase(runCode.fulfilled, (state, action) => {
         state.isRunning = false;
-        const data = action.payload.data || {};
-        const results = Array.isArray(data.testCases) ? data.testCases : [];
-        const totalTests = results.length;
-        const passedTests = results.filter((r: any) => r.status === 'Accepted' || r.passed === true).length;
-        
-        state.executionResult = {
-          allPassed: passedTests === totalTests,
-          results: results.map((r: any, idx: number) => ({
-            testCase: idx + 1,
-            input: r.input || '',
-            expectedOutput: r.expectedOutput || '',
-            actualOutput: r.actualOutput || r.output || '',
-            passed: r.passed || r.status === 'Accepted',
-            stderr: r.stderr || null,
-            status: r.status || (r.passed ? 'Accepted' : 'Wrong Answer'),
-            time: r.time || '0.00',
-            memory: r.memory || 0
-          }))
-        };
+        state.currentJobId = action.payload.jobId;
+        state.executionResult = action.payload.result;
       })
       .addCase(runCode.rejected, (state, action) => {
         state.isRunning = false;
-        state.executionError = action.error.message || 'Network error or server unavailable';
+        state.executionError = action.error.message || 'Failed to execute code';
       })
-      // Submit solution cases
+      // Submit Solution
       .addCase(submitSolution.pending, (state) => {
         state.isSubmitting = true;
         state.executionError = null;
+        state.executionResult = null;
       })
-      .addCase(submitSolution.fulfilled, (state) => {
+      .addCase(submitSolution.fulfilled, (state, action) => {
         state.isSubmitting = false;
-        // Success handled in component
+        state.currentJobId = action.payload.jobId;
+        state.executionResult = action.payload.result;
       })
       .addCase(submitSolution.rejected, (state, action) => {
         state.isSubmitting = false;
-        state.executionError = action.error.message || 'Network error or server unavailable';
+        state.executionError = action.error.message || 'Failed to submit solution';
       });
   },
 });

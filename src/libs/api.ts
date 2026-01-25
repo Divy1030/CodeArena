@@ -1,5 +1,5 @@
 // Use the environment variable for the API base URL with fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://code-arena-backend.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.code-arena.tech';
 
 // Log the API URL for debugging
 console.log('Using API base URL:', API_BASE_URL);
@@ -31,21 +31,15 @@ const endpoints = {
     getContestById: `${API_BASE_URL}/api/v1/contest/getContestById`,
     deleteContest: `${API_BASE_URL}/api/v1/contest/delete-contest`,
     addProblems: `${API_BASE_URL}/api/v1/contest/add-problems`,
-    
-    submitSolution: `${API_BASE_URL}/api/v1/contest/submit-solution`,
-    // Updated endpoints for problem management
     getProblems: `${API_BASE_URL}/api/v1/contest/get-problems`,
     updateProblem: `${API_BASE_URL}/api/v1/contest/update-problem`,
     deleteProblem: `${API_BASE_URL}/api/v1/contest/delete-problem`,
-    // Add this new endpoint for updateContestDetails
     updateContestDetails: `${API_BASE_URL}/api/v1/contest/update-contest-details`,
-    
-    // Moderator management
     addModerators: `${API_BASE_URL}/api/v1/contest/add-moderators`,
     moderators: `${API_BASE_URL}/api/v1/contest/moderators`,
     editModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
     deleteModerator: `${API_BASE_URL}/api/v1/contest/moderators`,
-    getContestParticipants: `${API_BASE_URL}/api/v1/contest`, // We'll append contestId in the route
+    getContestParticipants: `${API_BASE_URL}/api/v1/contest`,
     uploadBackground: `${API_BASE_URL}/api/v1/contest/background`,
   },
   user: {
@@ -55,21 +49,18 @@ const endpoints = {
     getManageableContests: `${API_BASE_URL}/api/v1/auth/manageable-contests`,
     uploadProfilePicture: `${API_BASE_URL}/api/v1/auth/profile-picture`,
     getUserById: `${API_BASE_URL}/api/v1/auth`,
-    
-    // Fix these endpoints to match backend routes
     followUnfollow: `${API_BASE_URL}/api/v1/auth/follow`,
     searchFriends: `${API_BASE_URL}/api/v1/auth/search-friends`,
     suggestedUsers: `${API_BASE_URL}/api/v1/auth/suggested-users`,
     getUserProfile: `${API_BASE_URL}/api/v1/auth/profile`,
   },
   problem: {
-    submit: `${API_BASE_URL}/api/v1/problem/submit-solution`,
-    run: `${API_BASE_URL}/api/v1/code/run`,
     getProblemById: `${API_BASE_URL}/api/v1/problem/get-problem`,
   },
   code: {
-    run: `${API_BASE_URL}/api/v1/code/execute`,
-    runAllTestCases: `${API_BASE_URL}/api/v1/code/execute-all`,
+    run: `${API_BASE_URL}/api/v1/code/run`,
+    submit: `${API_BASE_URL}/api/v1/code/submit`,
+    getResult: (jobId: string) => `${API_BASE_URL}/api/v1/code/result/${jobId}`,
   },
   social: {
     suggestedUsers: `${API_BASE_URL}/api/v1/social/suggested-users`,
