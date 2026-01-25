@@ -46,32 +46,12 @@ const Compiler: React.FC = () => {
     }
   }, [contestId, problemId, dispatch]);
 
-  // Update test cases when execution result changes
-  useEffect(() => {
-    if (executionResult) {
-      const updatedTestCases = testCases.map((tc, idx) => {
-        const result = executionResult.results[idx];
-        if (!result) return tc;
-        
-        return {
-          ...tc,
-          actualOutput: result.actualOutput,
-          status: result.passed ? 'passed' as const : 'failed' as const,
-          time: result.time,
-          memory: result.memory
-        };
-      });
-      
-      dispatch(updateTestCases(updatedTestCases));
-    }
-  }, [executionResult, testCases, dispatch]);
-
   // Handle submission success
   useEffect(() => {
-    if (isSubmitting === false && executionResult?.allPassed) {
+    if (isSubmitting === false && executionResult?.passed === executionResult?.total && executionResult?.total !== null) {
       toast.success('Congratulations! Your solution has been submitted successfully.');
     }
-  }, [isSubmitting, executionResult]);
+  }, [isSubmitting, executionResult?.passed, executionResult?.total]);
 
   if (loading) {
     return (

@@ -1,24 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import endpoints from '@/libs/api';
 
+interface TestCase {
+  input: string;
+  expectedOutput: string;
+}
+
+interface RequestBody {
+  code: string;
+  language: string;
+  testCases: TestCase[];
+  problemId: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: RequestBody = await request.json();
     
     // Validate required fields
-    if (!body.code || !body.language || !body.problemId) {
+    if (!body.code || !body.language || !body.problemId || !Array.isArray(body.testCases)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Missing required fields: code, language, and problemId are required' 
-        },
+        { success: false, message: 'Missing required fields: code, language, problemId, and testCases' },
         { status: 400 }
       );
     }
 
     // Get token from cookies or authorization header
     const token = request.cookies.get('accessToken')?.value || 
-                 request.headers.get('authorization')?.replace('Bearer ', '');
+                 request.headers.get('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
       return NextResponse.json(
@@ -27,42 +36,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call backend API
-    const response = await fetch(endpoints.problem.submit, {
+    // Call backend API to submit code
+    const response = await fetch(endpoints.code.submit, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        code: body.code,
+        language: body.language.toLowerCase(),
+        testCases: body.testCases,
+        problemId: body.problemId
+      }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: data.message || 'Failed to submit code',
-          details: data
-        },
+        { success: false, message: data.message || 'Failed to submit code' },
         { status: response.status }
       );
     }
 
+    // Return jobId to client
     return NextResponse.json({
       success: true,
-      message: 'Code submitted successfully',
-      data: data.data
+      data: data.data, // Contains { jobId: "..." }
+      message: data.message
     });
   } catch (error) {
     console.error('Error submitting code:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error)
-      },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }

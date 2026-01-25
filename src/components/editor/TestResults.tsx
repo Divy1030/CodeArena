@@ -1,12 +1,32 @@
 import React from 'react';
-import { Play, AlertCircle } from 'lucide-react';
+import { Play, Check, X, Clock, AlertCircle } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setSelectedTestCase } from '@/store/slices/problemSlice';
+import { setSelectedTestCase, updateTestCases } from '@/store/slices/problemSlice';
 
 const TestResults: React.FC = () => {
   const dispatch = useAppDispatch();
   const { testCases, selectedTestCase } = useAppSelector(state => state.problem);
   const { executionResult, executionError } = useAppSelector(state => state.execution);
+
+  // Update test cases with execution results
+  React.useEffect(() => {
+    if (executionResult && executionResult.results) {
+      const updatedTestCases = testCases.map((tc, index) => {
+        const result = executionResult.results[index];
+        if (result) {
+          return {
+            ...tc,
+            actualOutput: result.actualOutput,
+            status: result.status === 'Passed' ? 'passed' as const : 'failed' as const,
+            time: result.timeMs ? `${result.timeMs}ms` : undefined,
+            memory: result.memoryKb
+          };
+        }
+        return tc;
+      });
+      dispatch(updateTestCases(updatedTestCases));
+    }
+  }, [executionResult]);
 
   return (
     <div className="mt-6">
@@ -16,8 +36,15 @@ const TestResults: React.FC = () => {
           <span>Test Results</span>
         </div>
         {executionResult && (
-          <div className={executionResult.allPassed ? "text-green-500" : "text-red-500"}>
-            {executionResult.allPassed ? "All tests passed!" : "Some tests failed"}
+          <div className="flex items-center gap-4">
+            <span className={executionResult.passed === executionResult.total ? "text-green-500" : "text-red-500"}>
+              {executionResult.passed}/{executionResult.total} passed
+            </span>
+            {executionResult.score !== null && (
+              <span className="text-blue-400">
+                Score: {executionResult.score}%
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -42,13 +69,10 @@ const TestResults: React.FC = () => {
               }`}
               onClick={() => dispatch(setSelectedTestCase(testCase))}
             >
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  testCase.status === 'passed' ? 'bg-green-500' : 
-                  testCase.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
-                }`}
-              ></div>
-              <span>Test Case #{testCase.id}</span>
+              {testCase.status === 'passed' && <Check size={16} className="text-green-500" />}
+              {testCase.status === 'failed' && <X size={16} className="text-red-500" />}
+              {testCase.status === 'pending' && <Clock size={16} className="text-gray-500" />}
+              <span>Test Case {testCase.id}</span>
             </button>
           ))}
         </div>
@@ -70,25 +94,28 @@ const TestResults: React.FC = () => {
           
           <div className="text-white mt-2">
             <div className="bg-gray-800 p-2 rounded mb-2">
-              <div className="text-xs text-gray-400">Input:</div>
-              <pre className="font-mono">{selectedTestCase ? selectedTestCase.input : ''}</pre>
+              <div className="text-gray-400 text-sm">Input:</div>
+              <pre className="whitespace-pre-wrap">{selectedTestCase?.input || 'N/A'}</pre>
             </div>
             <div className="bg-gray-800 p-2 rounded mb-2">
-              <div className="text-xs text-gray-400">Expected Output:</div>
-              <pre className="font-mono">{selectedTestCase ? selectedTestCase.expectedOutput : ''}</pre>
+              <div className="text-gray-400 text-sm">Expected Output:</div>
+              <pre className="whitespace-pre-wrap">{selectedTestCase?.expectedOutput || 'N/A'}</pre>
             </div>
             {selectedTestCase && selectedTestCase.actualOutput !== undefined && (
-              <div className={`bg-gray-800 p-2 rounded mb-2 ${
-                selectedTestCase.status === 'failed' ? 'border border-red-600' : ''
+              <div className={`p-2 rounded mb-2 ${
+                selectedTestCase.status === 'passed' ? 'bg-green-900' : 'bg-red-900'
               }`}>
-                <div className="text-xs text-gray-400">Your Output:</div>
-                <pre className="font-mono">{selectedTestCase.actualOutput}</pre>
+                <div className="text-gray-400 text-sm">Actual Output:</div>
+                <pre className="whitespace-pre-wrap">{selectedTestCase.actualOutput}</pre>
               </div>
             )}
             {selectedTestCase && selectedTestCase.time && (
-              <div className="flex justify-between text-xs text-gray-400 mt-2">
-                <span>Time: {selectedTestCase.time}s</span>
-                {selectedTestCase.memory && <span>Memory: {selectedTestCase.memory} KB</span>}
+              <div className="flex items-center gap-2 text-gray-400 text-sm mt-2">
+                <Clock size={14} />
+                <span>Execution Time: {selectedTestCase.time}</span>
+                {selectedTestCase.memory && (
+                  <span className="ml-4">Memory: {selectedTestCase.memory} KB</span>
+                )}
               </div>
             )}
           </div>

@@ -4,19 +4,13 @@ import endpoints from '@/libs/api';
 // Define interfaces for type safety
 interface TestCase {
   input: string;
-  expectedOutput?: string;
-  output?: string;
+  expectedOutput: string;
 }
 
 interface RequestBody {
   code: string;
   language: string;
   testCases: TestCase[];
-}
-
-interface BackendResponse {
-  data?: unknown;
-  message?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -39,12 +33,12 @@ export async function POST(request: NextRequest) {
     console.log("FRONTEND API ROUTE - Original request body:", body);
     
     // Validate required fields
-    if (!body.code || !body.language || !body.testCases || !Array.isArray(body.testCases)) {
+    if (!body.code || !body.language || !Array.isArray(body.testCases)) {
       console.error("FRONTEND API ROUTE - Missing required fields");
       return NextResponse.json(
         { 
           success: false, 
-          message: 'Missing required fields: code, language, and testCases array are required' 
+          message: 'Missing required fields: code, language, and testCases' 
         },
         { status: 400 }
       );
@@ -55,69 +49,37 @@ export async function POST(request: NextRequest) {
                  request.headers.get('Authorization')?.replace('Bearer ', '') ||
                  request.headers.get('authorization')?.replace('Bearer ', '');
     
-    // Transform the request body
-    const transformedBody = {
-      ...body,
-      testCases: body.testCases.map((tc: TestCase) => ({
-        input: tc.input,
-        output: tc.expectedOutput || tc.output // Handle both formats
-      }))
-    };
+    // Call backend API to start code execution
+    const response = await fetch(endpoints.code.run, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        code: body.code,
+        language: body.language.toLowerCase(),
+        testCases: body.testCases
+      }),
+    });
     
-    console.log("FRONTEND API ROUTE - API endpoint URL:", endpoints.code.run);
-    console.log("FRONTEND API ROUTE - Transformed request body:", JSON.stringify(transformedBody).substring(0, 200) + "...");
+    console.log("FRONTEND API ROUTE - Response status:", response.status);
     
-    try {
-      // Call backend API
-      const response = await fetch(endpoints.code.run, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(transformedBody),
-      });
-      
-      console.log("FRONTEND API ROUTE - Response status:", response.status);
-      
-      if (!response.ok) {
-        console.error(`FRONTEND API ROUTE - Backend API returned error ${response.status}`);
-      }
-      
-      let responseData: BackendResponse;
-      try {
-        responseData = await response.json();
-        console.log("FRONTEND API ROUTE - Response data:", JSON.stringify(responseData).substring(0, 200) + "...");
-      } catch (jsonError) {
-        console.error("FRONTEND API ROUTE - Failed to parse response as JSON:", jsonError);
-        return NextResponse.json(
-          { success: false, message: 'Invalid response from backend' },
-          { status: 500 }
-        );
-      }
-      
-      // Transform backend response to match frontend expectations
-      const transformedResponse = {
-        success: response.ok,
-        message: response.ok ? 'Code run successfully' : (responseData.message || 'Failed to run code'),
-        data: responseData.data,
-        statusCode: response.status
-      };
-      
-      console.log("FRONTEND API ROUTE - Transformed response:", JSON.stringify(transformedResponse).substring(0, 200) + "...");
-      
-      return NextResponse.json(transformedResponse);
-    } catch (fetchError) {
-      console.error("FRONTEND API ROUTE - Fetch error:", fetchError);
+    const data = await response.json();
+
+    if (!response.ok) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Failed to connect to backend API',
-          details: fetchError instanceof Error ? fetchError.message : String(fetchError)
-        },
-        { status: 500 }
+        { success: false, message: data.message || 'Failed to run code' },
+        { status: response.status }
       );
     }
+
+    // Return jobId to client
+    return NextResponse.json({
+      success: true,
+      data: data.data, // Contains { jobId: "..." }
+      message: data.message
+    });
   } catch (error) {
     console.error('FRONTEND API ROUTE - Unhandled error:', error);
     return NextResponse.json(
