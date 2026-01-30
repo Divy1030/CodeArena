@@ -63,6 +63,7 @@ const Footer: React.FC = () => {
                   alt="CodeArena Logo"
                   width={32}
                   height={32}
+                  style={{ width: 'auto', height: 'auto' }}
                 />
                 <Image
                   src="/images/common/logo.png"
@@ -70,6 +71,7 @@ const Footer: React.FC = () => {
                   width={80}
                   height={40}
                   className="object-contain translate-y-1"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
               </div>
             </Link>

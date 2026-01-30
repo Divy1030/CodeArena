@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
+import SocketProvider from '@/components/duel/SocketProvider';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -34,21 +35,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#121B38]">
-      {/* Custom Navbar with logged-in state */}
-      <Navbar 
-        isAuthenticated={!!userData} 
-        isAdmin={userData?.role === 'admin'}
-        userProfilePicture={userData?.profilePicture || userData?.profile?.avatarUrl}
-        username={userData?.username}
-      />
-      
-      {/* Main content */}
-      <main className="flex-1">
-        {children}
-      </main>
-      
-      <Footer />
-    </div>
+    <SocketProvider>
+      <div className="min-h-screen flex flex-col bg-[#121B38]">
+        {/* Custom Navbar with logged-in state */}
+        <Navbar 
+          isAuthenticated={!!userData} 
+          isAdmin={userData?.role === 'admin'}
+          userProfilePicture={userData?.profilePicture || userData?.profile?.avatarUrl}
+          username={userData?.username}
+        />
+        
+        {/* Main content */}
+        <main className="flex-1">
+          {children}
+        </main>
+        
+        <Footer />
+      </div>
+    </SocketProvider>
   );
 }

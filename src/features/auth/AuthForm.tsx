@@ -10,6 +10,7 @@ import { AuthFormType } from "./types/auth.types";
 import { CombinedFormValues } from "./types/form.types";
 import Link from "next/link";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { useGoogleOAuthAvailable } from "@/providers/GoogleOAuthProvider";
 import axios from "axios";
 import CustomInput from "@/components/Custom/CustomInput";
 
@@ -32,6 +33,7 @@ export default function AuthForm({ type }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const isGoogleOAuthAvailable = useGoogleOAuthAvailable();
 
   // Use the combined schema for both login and register
   const form = useForm<CombinedFormValues>({
@@ -423,14 +425,16 @@ export default function AuthForm({ type }: AuthFormProps) {
           : type === 'login' ? 'Login' : 'Sign up'}
       </button>
 
-      <GoogleLogin
-        onSuccess={handleLogin}
-        onError={() => console.log("Login Failed")}
-        theme="outline" // or "filled_blue", "filled_black"
-        size="large" // or "medium", "small"
-        shape="rectangular" // or "rectangular", "circle"
-        text="continue_with" // or "signup_with", "continue_with"
-      />
+      {isGoogleOAuthAvailable && (
+        <GoogleLogin
+          onSuccess={handleLogin}
+          onError={() => console.log("Login Failed")}
+          theme="outline" // or "filled_blue", "filled_black"
+          size="large" // or "medium", "small"
+          shape="rectangular" // or "rectangular", "circle"
+          text="continue_with" // or "signup_with", "continue_with"
+        />
+      )}
     </form>
   );
 }

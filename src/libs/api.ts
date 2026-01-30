@@ -69,6 +69,10 @@ const endpoints = {
     followers: `${API_BASE_URL}/api/v1/social/followers`,
     following: `${API_BASE_URL}/api/v1/social/following`,
   },
+    duel: {
+    socketUrl: process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api.code-arena.tech',
+    getProblem: `/api/duel/problem`, // Next.js API route for fetching duel problems
+  }
 };
 
 export default endpoints;
