@@ -31,6 +31,12 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
   const filterRef = useRef<HTMLSpanElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const [activeIndex, setActiveIndex] = useState<number>(initialActiveIndex);
+  
+  // Update activeIndex when initialActiveIndex prop changes (e.g., on navigation)
+  useEffect(() => {
+    setActiveIndex(initialActiveIndex);
+  }, [initialActiveIndex]);
+  
   const noise = (n = 1) => n / 2 - Math.random() * n;
   const getXY = (
     distance: number,

@@ -1,5 +1,5 @@
 // Use the environment variable for the API base URL with fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.code-arena.tech';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Log the API URL for debugging
 console.log('Using API base URL:', API_BASE_URL);
@@ -55,7 +55,8 @@ const endpoints = {
     getUserProfile: `${API_BASE_URL}/api/v1/auth/profile`,
   },
   problem: {
-    getProblemById: `${API_BASE_URL}/api/v1/problem/get-problem`,
+    getProblemById: (problemId: string) => `${API_BASE_URL}/api/v1/problem/get-problem/${problemId}`,
+    getAllProblems: `${API_BASE_URL}/api/v1/problem/get-all-problems`,
   },
   code: {
     run: `${API_BASE_URL}/api/v1/code/run`,

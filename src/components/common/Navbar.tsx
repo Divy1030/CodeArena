@@ -97,6 +97,27 @@ const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
+  // Calculate the active navigation index based on current path
+  const getActiveNavIndex = () => {
+    const navItems = getNavItems();
+    
+    // Check for exact matches or path prefixes
+    for (let i = 0; i < navItems.length; i++) {
+      const item = navItems[i];
+      // Exact match
+      if (pathname === item.href) {
+        return i;
+      }
+      // Path prefix match (for nested routes like /problems/123)
+      if (item.href !== '/' && pathname?.startsWith(item.href)) {
+        return i;
+      }
+    }
+    
+    // Default to Dashboard (index 0)
+    return 0;
+  };
+
   // Render profile avatar (image or fallback)
   const renderProfileAvatar = () => {
     if (profilePicture && !imageError) {
@@ -153,7 +174,7 @@ const Navbar: React.FC<NavbarProps> = ({
               particleCount={12}
               particleDistances={[60, 10]}
               particleR={80}
-              initialActiveIndex={0}
+              initialActiveIndex={getActiveNavIndex()}
               animationTime={600}
               timeVariance={300}
               colors={[1, 2, 3, 1, 2, 3, 1, 4]}

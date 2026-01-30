@@ -104,13 +104,15 @@ export const submitSolution = createAsyncThunk(
     language, 
     testCases,
     problemId,
-    contestId 
+    contestId,
+    isStandalone = false
   }: { 
     code: string; 
     language: string; 
     testCases: any[]; 
     problemId: string;
     contestId: string;
+    isStandalone?: boolean;
   }) => {
     // Step 1: Start submission to code execution service
     const submitResponse = await fetch('/api/code/submit', {
@@ -137,8 +139,8 @@ export const submitSolution = createAsyncThunk(
     // Step 2: Poll for result
     const result = await pollForResult(jobId);
     
-    // Step 3: Save to database via problem controller
-    if (result.status === 'completed') {
+    // Step 3: Save to database via problem controller (only for contest problems)
+    if (result.status === 'completed' && !isStandalone && contestId) {
       const saveResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

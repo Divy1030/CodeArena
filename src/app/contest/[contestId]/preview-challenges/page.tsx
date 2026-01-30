@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import { Trophy, BarChart2, FileText } from "lucide-react";
+import LeaderboardSection from "@/components/contest/LeaderboardSection";
 
 // Using a simpler interface similar to your working preview page
 interface ContestData {
@@ -220,6 +221,14 @@ function ContestChallengesPreview() {
                     <p className="text-gray-400">There are no matching challenges.</p>
                   </div>
                 )}
+
+                {/* Leaderboard Section */}
+                <div className="mt-8">
+                  <LeaderboardSection 
+                    contestId={contestId} 
+                    refreshInterval={30000}
+                  />
+                </div>
               </div>
 
               {/* Right Column - Sidebar */}

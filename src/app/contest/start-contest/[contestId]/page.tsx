@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { Trophy, BarChart2, FileText } from "lucide-react";
+import LeaderboardSection from "@/components/contest/LeaderboardSection";
 
 interface Participant {
   userId: string;
@@ -252,6 +253,14 @@ const StartContestPage = () => {
                 <p className="text-gray-400">There are no problems available for this contest.</p>
               </div>
             )}
+
+            {/* Leaderboard Section below challenges */}
+            <div className="mt-8">
+              <LeaderboardSection 
+                contestId={contestId} 
+                refreshInterval={30000}
+              />
+            </div>
           </div>
           
           {/* Contest Info & Links - Now smaller for better proportions */}

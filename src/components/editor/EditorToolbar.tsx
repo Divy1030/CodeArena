@@ -5,11 +5,12 @@ import { setLanguage, setCode, toggleSettings, toggleFullScreen } from '@/store/
 import { runCode, submitSolution } from '@/store/slices/executionSlice';
 
 interface EditorToolbarProps {
-  contestId: string;
+  contestId?: string;
   problemId: string;
+  isStandalone?: boolean;
 }
 
-const EditorToolbar: React.FC<EditorToolbarProps> = ({ contestId, problemId }) => {
+const EditorToolbar: React.FC<EditorToolbarProps> = ({ contestId, problemId, isStandalone = false }) => {
   const dispatch = useAppDispatch();
   const { language, isFullScreen, isMobile } = useAppSelector(state => state.editor);
   const { code } = useAppSelector(state => state.editor);
@@ -76,7 +77,8 @@ int main() {
       language, 
       testCases,
       problemId,
-      contestId // Add this
+      contestId: contestId || '',
+      isStandalone
     }));
   };
 
