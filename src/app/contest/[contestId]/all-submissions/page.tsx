@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Eye, CheckCircle, XCircle, Clock, Search, Filter } from 'lucide-react';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
 import { toast } from 'react-hot-toast';
 
 interface Submission {
@@ -169,158 +167,156 @@ export default function AllSubmissionsPage() {
   });
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-[#0f172a] text-white">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Header */}
-          <Link 
-            href={`/contest/${contestId}/preview-challenges`}
-            className="flex items-center text-blue-400 hover:text-blue-300 mb-6"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Contest
-          </Link>
+    <div className="text-white">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <Link 
+          href={`/contest/${contestId}/preview-challenges`}
+          className="flex items-center text-blue-400 hover:text-blue-300 mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Contest
+        </Link>
 
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">
-              {contest ? `${contest.title} - All Submissions` : 'Contest Submissions'}
-            </h1>
-            <p className="text-gray-400">View all submissions made in this contest</p>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            {contest ? `${contest.title} - All Submissions` : 'Contest Submissions'}
+          </h1>
+          <p className="text-gray-400">View all submissions made in this contest</p>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-white">Filters</h2>
           </div>
-
-          {/* Filters */}
-          <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6 mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="w-5 h-5 text-blue-400" />
-              <h2 className="text-lg font-semibold text-white">Filters</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Problem or user..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">All Statuses</option>
-                  {uniqueStatuses.map(status => (
-                    <option key={status} value={status}>{formatStatus(status)}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Language Filter */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Language</label>
-                <select
-                  value={languageFilter}
-                  onChange={(e) => setLanguageFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">All Languages</option>
-                  {uniqueLanguages.map(lang => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Problem Filter */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Problem</label>
-                <select
-                  value={problemFilter}
-                  onChange={(e) => setProblemFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">All Problems</option>
-                  {uniqueProblems.map(problem => (
-                    <option key={problem} value={problem}>{problem}</option>
-                  ))}
-                </select>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Problem or user..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                />
               </div>
             </div>
 
-            {/* Results count */}
-            <div className="mt-4 text-sm text-gray-400">
-              Showing {filteredSubmissions.length} of {submissions.length} submissions
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value="all">All Statuses</option>
+                {uniqueStatuses.map(status => (
+                  <option key={status} value={status}>{formatStatus(status)}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Language Filter */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Language</label>
+              <select
+                value={languageFilter}
+                onChange={(e) => setLanguageFilter(e.target.value)}
+                className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value="all">All Languages</option>
+                {uniqueLanguages.map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Problem Filter */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Problem</label>
+              <select
+                value={problemFilter}
+                onChange={(e) => setProblemFilter(e.target.value)}
+                className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value="all">All Problems</option>
+                {uniqueProblems.map(problem => (
+                  <option key={problem} value={problem}>{problem}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Submissions Table */}
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : filteredSubmissions.length === 0 ? (
-            <div className="bg-[#121B38] border border-gray-700 rounded-lg p-12 text-center">
-              <p className="text-gray-400 text-lg">
-                {submissions.length === 0 ? 'No submissions yet' : 'No submissions match the filters'}
-              </p>
-            </div>
-          ) : (
-            <div className="bg-[#121B38] border border-gray-700 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-700">
-                  <thead className="bg-[#0f172a]">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Problem
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Language
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Score
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Time
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Submitted At
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-[#121B38] divide-y divide-gray-700">
-                    {filteredSubmissions.map((submission) => {
-                      // Get username from submission's userId field
-                      const displayUsername = submission.userId?.username || 'Unknown User';
-                      
-                      return (
-                        <tr key={submission._id} className="hover:bg-[#1a2540]">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="text-sm font-medium text-white">
-                                {displayUsername}
-                              </div>
+          {/* Results count */}
+          <div className="mt-4 text-sm text-gray-400">
+            Showing {filteredSubmissions.length} of {submissions.length} submissions
+          </div>
+        </div>
+
+        {/* Submissions Table */}
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="bg-[#121B38] border border-gray-700 rounded-lg p-12 text-center">
+            <p className="text-gray-400 text-lg">
+              {submissions.length === 0 ? 'No submissions yet' : 'No submissions match the filters'}
+            </p>
+          </div>
+        ) : (
+          <div className="bg-[#121B38] border border-gray-700 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-[#0f172a]">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Problem
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Language
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Score
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Time
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Submitted At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-[#121B38] divide-y divide-gray-700">
+                  {filteredSubmissions.map((submission) => {
+                    // Get username from submission's userId field
+                    const displayUsername = submission.userId?.username || 'Unknown User';
+                    
+                    return (
+                      <tr key={submission._id} className="hover:bg-[#1a2540]">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="text-sm font-medium text-white">
+                              {displayUsername}
                             </div>
-                          </td>
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-300">
                             {submission.problemId?.title || 'Unknown Problem'}
@@ -361,14 +357,13 @@ export default function AllSubmissionsPage() {
                           </button>
                         </td>
                       </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Submission Detail Modal */}
@@ -469,8 +464,6 @@ export default function AllSubmissionsPage() {
           </div>
         </div>
       )}
-
-      <Footer />
-    </>
+    </div>
   );
 }

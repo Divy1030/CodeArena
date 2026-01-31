@@ -68,8 +68,8 @@ const Footer: React.FC = () => {
                 <Image
                   src="/images/common/logo.png"
                   alt="CodeArena"
-                  width={80}
-                  height={40}
+                  width={40}
+                  height={20}
                   className="object-contain translate-y-1"
                   style={{ width: 'auto', height: 'auto' }}
                 />
