@@ -32,7 +32,14 @@ function SignupsPage() {
         
         // Check if data was returned successfully
         if (data.success && data.participants) {
-          setParticipants(data.participants);
+          // Map the API response to the expected format
+          const mappedParticipants = data.participants.map((p: any) => ({
+            id: p.userId?._id || '',
+            username: p.userId?.username || 'Unknown',
+            signupDate: p.joinedAt || new Date().toISOString(),
+            lastLogin: p.lastLogin
+          }));
+          setParticipants(mappedParticipants);
         } else {
           throw new Error(data.message || 'Failed to load participants');
         }

@@ -7,24 +7,33 @@ import { Doughnut } from 'react-chartjs-2';
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const ContestDistributionChart = () => {
-  // Example data - in a real app, this would come from props or a backend call
+interface ContestDistributionChartProps {
+  active: number;
+  upcoming: number;
+  past: number;
+  total: number;
+}
+
+export const ContestDistributionChart: React.FC<ContestDistributionChartProps> = ({ 
+  active, 
+  upcoming, 
+  past, 
+  total 
+}) => {
   const data = {
-    labels: ['Active', 'Upcoming', 'Past', 'Draft'],
+    labels: ['Active', 'Upcoming', 'Past'],
     datasets: [
       {
-        data: [3, 2, 8, 1],
+        data: [active, upcoming, past],
         backgroundColor: [
           'rgba(75, 192, 192, 0.8)',
           'rgba(54, 162, 235, 0.8)',
           'rgba(153, 102, 255, 0.8)',
-          'rgba(255, 206, 86, 0.8)',
         ],
         borderColor: [
           'rgba(75, 192, 192, 1)',
           'rgba(54, 162, 235, 1)',
           'rgba(153, 102, 255, 1)',
-          'rgba(255, 206, 86, 1)',
         ],
         borderWidth: 1,
       },

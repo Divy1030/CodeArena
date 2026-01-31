@@ -11,9 +11,9 @@ export default function ManageContestNavbar() {
   const tabs = [
     { name: "Details", route: `/contest/manage/${contestId}` },
     { name: "Challenges", route: `/contest/manage/${contestId}/challenges` },
-    { name: "Advanced Settings", route: `/contest/manage/${contestId}/advance-settings` },
+    // { name: "Advanced Settings", route: `/contest/manage/${contestId}/advance-settings` },
     { name: "Moderators", route: `/contest/manage/${contestId}/moderators` },
-    { name: "Notifications", route: `/contest/manage/${contestId}/notifications` },
+    // { name: "Notifications", route: `/contest/manage/${contestId}/notifications` },
     { name: "Signups", route: `/contest/manage/${contestId}/signups` },
     { name: "Statistics", route: `/contest/manage/${contestId}/statistics` },
   ];

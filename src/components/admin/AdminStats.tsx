@@ -48,9 +48,10 @@ const AdminStats: React.FC<AdminStatsProps> = ({ admin }) => {
   // Calculate statistics
   const totalContests = admin.contestsCreated?.length || 0;
   
-  // Since we don't have a 'problems' field in the Contest interface from parent,
-  // we can't calculate this accurately, so we'll set it to 0 or modify as needed
-  const totalProblems = 0; // Modify if you have a way to calculate this
+  // Calculate total problems from all contests
+  const totalProblems = admin.contestsCreated?.reduce((acc: number, contest: any) => {
+    return acc + (contest.problems?.length || 0);
+  }, 0) || 0;
   
   const activeContests = admin.contestsCreated?.filter((contest: Contest) => {
     const now = new Date();
@@ -62,6 +63,18 @@ const AdminStats: React.FC<AdminStatsProps> = ({ admin }) => {
   const totalParticipants = admin.contestsCreated?.reduce((acc: number, contest: Contest) => {
     return acc + (contest.participants?.length || 0);
   }, 0) || 0;
+  
+  // Calculate contest distribution
+  const now = new Date();
+  const upcomingContests = admin.contestsCreated?.filter((contest: Contest) => {
+    const startDate = new Date(contest.startTime);
+    return now < startDate;
+  }).length || 0;
+  
+  const pastContests = admin.contestsCreated?.filter((contest: Contest) => {
+    const endDate = new Date(contest.endTime);
+    return now > endDate;
+  }).length || 0;
   
   return (
     <div className="space-y-6">
@@ -95,7 +108,7 @@ const AdminStats: React.FC<AdminStatsProps> = ({ admin }) => {
           <CardContent className="pt-6">
             <h3 className="text-lg font-medium mb-4">Admin Activity</h3>
             <div className="h-[250px]">
-              <AdminActivityChart />
+              <AdminActivityChart contests={admin.contestsCreated || []} />
             </div>
           </CardContent>
         </Card>
@@ -104,7 +117,12 @@ const AdminStats: React.FC<AdminStatsProps> = ({ admin }) => {
           <CardContent className="pt-6">
             <h3 className="text-lg font-medium mb-4">Contest Distribution</h3>
             <div className="h-[250px]">
-              <ContestDistributionChart />
+              <ContestDistributionChart 
+                active={activeContests}
+                upcoming={upcomingContests}
+                past={pastContests}
+                total={totalContests}
+              />
             </div>
           </CardContent>
         </Card>

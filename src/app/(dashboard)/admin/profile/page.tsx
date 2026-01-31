@@ -24,6 +24,8 @@ interface Contest {
   endTime: string;
   status?: string;
   participants?: Participant[];
+  problems?: any[]; // Add problems field
+  createdAt?: string; // Add createdAt field
 }
 
 interface AdminData {

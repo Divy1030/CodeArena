@@ -110,7 +110,6 @@ const Navbar: React.FC<NavbarProps> = ({
         { label: "Dashboard", href: "/admin/home" },
         { label: "Problems", href: "/problems" },
         { label: "Contests", href: "/contests" },
-        { label: "Leaderboard", href: "/admin/leaderboard" },
       ];
     } else {
       return [

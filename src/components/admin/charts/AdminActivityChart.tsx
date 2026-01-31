@@ -15,23 +15,69 @@ ChartJS.register(
   Legend
 );
 
-export const AdminActivityChart = () => {
-  // Example data - in a real app, this would come from props or a backend call
-  const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+interface Contest {
+  _id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  problems?: any[];
+  createdAt?: string;
+}
+
+interface AdminActivityChartProps {
+  contests: Contest[];
+}
+
+export const AdminActivityChart: React.FC<AdminActivityChartProps> = ({ contests }) => {
+  // Get last 6 months
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentDate = new Date();
+  const last6Months = [];
+  
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    last6Months.push({
+      month: months[date.getMonth()],
+      year: date.getFullYear(),
+      date: date
+    });
+  }
+  
+  const labels = last6Months.map(m => m.month);
+  
+  // Count contests created per month
+  const contestsPerMonth = last6Months.map(monthData => {
+    return contests.filter(contest => {
+      const contestDate = new Date(contest.createdAt || contest.startTime);
+      return contestDate.getMonth() === monthData.date.getMonth() &&
+             contestDate.getFullYear() === monthData.date.getFullYear();
+    }).length;
+  });
+  
+  // Count problems added per month
+  const problemsPerMonth = last6Months.map(monthData => {
+    return contests
+      .filter(contest => {
+        const contestDate = new Date(contest.createdAt || contest.startTime);
+        return contestDate.getMonth() === monthData.date.getMonth() &&
+               contestDate.getFullYear() === monthData.date.getFullYear();
+      })
+      .reduce((sum, contest) => sum + (contest.problems?.length || 0), 0);
+  });
   
   const data = {
     labels,
     datasets: [
       {
         label: 'Contests Created',
-        data: [1, 2, 1, 3, 2, 4],
+        data: contestsPerMonth,
         borderColor: 'rgb(153, 102, 255)',
         backgroundColor: 'rgba(153, 102, 255, 0.5)',
         tension: 0.3,
       },
       {
         label: 'Problems Added',
-        data: [5, 7, 3, 12, 8, 15],
+        data: problemsPerMonth,
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.5)',
         tension: 0.3,
