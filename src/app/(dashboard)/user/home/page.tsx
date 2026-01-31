@@ -53,7 +53,7 @@ const UserHome: React.FC = () => {
   const [contests, setContests] = useState<ContestData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'live' | 'past'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'live'>('live');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [joiningContestId, setJoiningContestId] = useState<string | null>(null);
 
@@ -198,7 +198,7 @@ const UserHome: React.FC = () => {
     }
   };
 
-  // Filter contests by status
+  // Filter contests by active tab
   const filteredContests = contests.filter(contest => contest.status === activeTab);
   
   // Get difficulty color class
@@ -220,7 +220,7 @@ const UserHome: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center px-24 py-12">
           <div className="max-w-xl">
             <h2 className="text-4xl font-bold leading-snug mb-4">
-              Welcome to Code-Up Arena
+              Welcome to Code Arena
             </h2>
             <p className="text-gray-300 text-lg mb-6">
               Participate in coding contests, solve challenging problems, and compete with coders around the world.
@@ -261,7 +261,7 @@ const UserHome: React.FC = () => {
             
             {/* Contest Tabs */}
             <div className="flex bg-[#0f172a] rounded-lg p-1">
-              {['upcoming', 'live', 'past'].map((tab) => (
+              {['upcoming', 'live'].map((tab) => (
                 <button
                   key={tab}
                   className={`px-4 py-2 rounded-lg text-sm font-medium capitalize ${
@@ -269,7 +269,7 @@ const UserHome: React.FC = () => {
                       ? 'bg-blue-600 text-white' 
                       : 'text-gray-400 hover:text-white'
                   }`}
-                  onClick={() => setActiveTab(tab as 'upcoming' | 'live' | 'past')}
+                  onClick={() => setActiveTab(tab as 'upcoming' | 'live')}
                 >
                   {tab}
                 </button>
@@ -288,7 +288,7 @@ const UserHome: React.FC = () => {
             </div>
           ) : filteredContests.length === 0 ? (
             <div className="text-center py-12 bg-[#0f172a] rounded-lg">
-              <p className="text-gray-400">No {activeTab} contests found.</p>
+              <p className="text-gray-400">No {activeTab} contests available at the moment.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -338,50 +338,38 @@ const UserHome: React.FC = () => {
                       ))}
                     </div>
                     
-                    {(activeTab === 'upcoming' || activeTab === 'live') && (
-                      <Button
-                        className={`w-full ${
-                          contest.hasJoined
-                            ? 'bg-green-600 hover:bg-green-700'
-                            : 'bg-blue-600 hover:bg-blue-700'
-                        }`}
-                        onClick={() => {
-                          if (contest.hasJoined) {
-                            // Allow entering contest for both upcoming and live
-                            router.push(`/contest/enter-contest/${contest._id}`);
-                          } else {
-                            joinContest(contest._id);
-                          }
-                        }}
-                        disabled={!!joiningContestId}
-                      >
-                        {joiningContestId === contest._id ? (
-                          <span className="flex items-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                            Joining...
-                          </span>
-                        ) : contest.hasJoined ? (
-                          <>
-                            Enter Contest
-                            <ChevronRight className="ml-1 w-4 h-4" />
-                          </>
-                        ) : (
-                          <>
-                            {activeTab === 'upcoming' ? 'Register' : 'Join Contest'}
-                            <ChevronRight className="ml-1 w-4 h-4" />
-                          </>
-                        )}
-                      </Button>
-                    )}
-                    
-                    {activeTab === 'past' && (
-                      <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700"
-                        onClick={() => router.push(`/contest/results/${contest._id}`)}
-                      >
-                        View Results
-                      </Button>
-                    )}
+                    <Button
+                      className={`w-full ${
+                        contest.hasJoined
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : 'bg-blue-600 hover:bg-blue-700'
+                      }`}
+                      onClick={() => {
+                        if (contest.hasJoined) {
+                          router.push(`/contest/enter-contest/${contest._id}`);
+                        } else {
+                          joinContest(contest._id);
+                        }
+                      }}
+                      disabled={!!joiningContestId}
+                    >
+                      {joiningContestId === contest._id ? (
+                        <span className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                          Joining...
+                        </span>
+                      ) : contest.hasJoined ? (
+                        <>
+                          Enter Contest
+                          <ChevronRight className="ml-1 w-4 h-4" />
+                        </>
+                      ) : (
+                        <>
+                          {activeTab === 'upcoming' ? 'Register' : 'Join Contest'}
+                          <ChevronRight className="ml-1 w-4 h-4" />
+                        </>
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}

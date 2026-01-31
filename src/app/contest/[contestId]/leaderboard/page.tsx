@@ -48,12 +48,12 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      <Navbar isAuthenticated={true} />
+      <Navbar />
       
-      {/* Contest Info Header */}
-      <div className="bg-[#121B38] border-b border-gray-700">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center text-gray-300 text-sm mb-4">
+      {/* Header Navigation */}
+      <div className="border-b border-gray-700 bg-[#0f172a]">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center text-gray-300 text-sm">
             <Link href="/contests" className="hover:text-blue-400">
               All Contests
             </Link>
@@ -68,18 +68,23 @@ export default function LeaderboardPage() {
             ) : null}
             <span className="text-gray-400">Leaderboard</span>
           </div>
-          
+        </div>
+      </div>
+
+      {/* Title Section */}
+      <div className="bg-[#121B38] border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           {!loading && contest && (
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{contest.title}</h1>
-              <p className="text-gray-400">Live Leaderboard - Updates every 30 seconds</p>
-            </div>
+            <>
+              <h1 className="text-2xl font-bold text-white">{contest.title} - Leaderboard</h1>
+              <p className="text-gray-400 text-sm mt-1">Live Leaderboard - Updates every 30 seconds</p>
+            </>
           )}
         </div>
       </div>
 
       {/* Leaderboard Section */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <LeaderboardSection 
           contestId={contestId} 
           refreshInterval={30000}

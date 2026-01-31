@@ -31,19 +31,28 @@ const Navbar: React.FC<NavbarProps> = ({
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const [actualUserData, setActualUserData] = useState<UserData | null>(null);
+  const [actualIsAuthenticated, setActualIsAuthenticated] = useState<boolean>(isAuthenticated);
   const pathname = usePathname();
 
   // Load user data from localStorage
   useEffect(() => {
     const loadUserData = () => {
       try {
+        const token = localStorage.getItem("token");
         const storedUserData = localStorage.getItem("userData");
-        if (storedUserData) {
+        
+        // Determine if user is actually authenticated
+        if (token && storedUserData) {
+          setActualIsAuthenticated(true);
           const parsedUserData = JSON.parse(storedUserData) as UserData;
           setActualUserData(parsedUserData);
+        } else {
+          setActualIsAuthenticated(false);
+          setActualUserData(null);
         }
       } catch (err) {
         console.error("Error loading user data:", err);
+        setActualIsAuthenticated(false);
       }
     };
 
@@ -182,7 +191,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </Link>
 
         {/* Center navigation with GooeyNav - ONLY for authenticated users */}
-        {isAuthenticated && (
+        {actualIsAuthenticated && (
           <div className="hidden md:block">
             <GooeyNav
               items={getNavItems()}
@@ -199,7 +208,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right side - Regular Login/Signup buttons or User Profile */}
         <div className="hidden md:flex items-center gap-4">
-          {!isAuthenticated ? (
+          {!actualIsAuthenticated ? (
             <>
               <Link
                 href="/register"
@@ -268,7 +277,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Mobile menu button */}
         <div className="md:hidden flex items-center gap-4">
-          {isAuthenticated && (
+          {actualIsAuthenticated && (
             <button
               onClick={toggleProfileMenu}
               className="text-gray-300 hover:text-white"
@@ -304,7 +313,7 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden mt-4 space-y-2">
-          {isAuthenticated ? (
+          {actualIsAuthenticated ? (
             // Only show navigation items for authenticated users
             <>
               {getNavItems().map((item, index) => (
