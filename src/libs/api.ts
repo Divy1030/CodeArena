@@ -55,7 +55,7 @@ const endpoints = {
     getUserProfile: `${API_BASE_URL}/api/v1/auth/profile`,
   },
   problem: {
-    getProblemById: (problemId: string) => `${API_BASE_URL}/api/v1/problem/get-problem/${problemId}`,
+    getProblemById: (contestId: string, problemId: string) => `${API_BASE_URL}/api/v1/problem/get-problem/${contestId}/${problemId}`,
     getAllProblems: `${API_BASE_URL}/api/v1/problem/get-all-problems`,
   },
   code: {

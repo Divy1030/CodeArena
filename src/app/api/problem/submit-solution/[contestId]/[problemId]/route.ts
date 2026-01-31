@@ -31,6 +31,13 @@ export async function POST(
     );
 
     const data = await response.json();
+    
+    console.log('\ud83d\udce4 Backend submission response:', {
+      success: data.success,
+      message: data.message,
+      stats: data.data?.stats,
+      solvedForFirstTime: data.data?.solvedForFirstTime
+    });
 
     if (!response.ok) {
       return NextResponse.json(

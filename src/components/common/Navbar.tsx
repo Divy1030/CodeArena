@@ -35,15 +35,30 @@ const Navbar: React.FC<NavbarProps> = ({
 
   // Load user data from localStorage
   useEffect(() => {
-    try {
-      const storedUserData = localStorage.getItem("userData");
-      if (storedUserData) {
-        const parsedUserData = JSON.parse(storedUserData) as UserData;
-        setActualUserData(parsedUserData);
+    const loadUserData = () => {
+      try {
+        const storedUserData = localStorage.getItem("userData");
+        if (storedUserData) {
+          const parsedUserData = JSON.parse(storedUserData) as UserData;
+          setActualUserData(parsedUserData);
+        }
+      } catch (err) {
+        console.error("Error loading user data:", err);
       }
-    } catch (err) {
-      console.error("Error loading user data:", err);
-    }
+    };
+
+    loadUserData();
+
+    // Listen for user data updates
+    const handleUserDataUpdate = () => {
+      console.log('\ud83d\udd14 Navbar received userDataUpdated event');
+      loadUserData();
+    };
+
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+    return () => {
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+    };
   }, []);
 
   // Close menus when pathname changes (navigation occurs)
@@ -158,8 +173,8 @@ const Navbar: React.FC<NavbarProps> = ({
             <Image
               src="/images/common/logo.png"
               alt="CodeArena"
-              width={80}
-              height={40}
+              width={40}
+              height={20}
               className="object-contain translate-y-1"
               style={{ width: 'auto', height: 'auto' }}
             />

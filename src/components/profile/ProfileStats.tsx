@@ -52,7 +52,38 @@ interface ProfileStatsProps {
   user: UserProfile;
 }
 
-const ProfileStats: React.FC<ProfileStatsProps> = ({ user }) => {
+const ProfileStats: React.FC<ProfileStatsProps> = ({ user: initialUser }) => {
+  const [user, setUser] = React.useState<UserProfile>(initialUser);
+
+  // Listen for user data updates
+  React.useEffect(() => {
+    const handleUserDataUpdate = () => {
+      try {
+        const storedUserData = localStorage.getItem("userData");
+        if (storedUserData) {
+          const parsedUserData = JSON.parse(storedUserData) as UserProfile;
+          console.log('\ud83d\udcca ProfileStats updated:', {
+            rating: parsedUserData.rating,
+            solved: parsedUserData.solvedProblems?.length
+          });
+          setUser(parsedUserData);
+        }
+      } catch (err) {
+        console.error("Error loading updated user data:", err);
+      }
+    };
+
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+    return () => {
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+    };
+  }, []);
+
+  // Update when prop changes
+  React.useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
+
   // Calculate number of solved problems (handle both formats)
   const solvedProblemCount = user.solvedProblems?.length || 0;
 

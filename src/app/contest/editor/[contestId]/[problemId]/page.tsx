@@ -14,6 +14,7 @@ import EditorToolbar from '@/components/editor/EditorToolbar';
 import SettingsModal from '@/components/editor/SettingsModal';
 import TestResults from '@/components/editor/TestResults';
 import CodeEditorComponent from '@/components/editor/CodeEditorComponent';
+import PreviousSolutionBanner from '@/components/editor/PreviousSolutionBanner';
 
 const Compiler: React.FC = () => {
   const params = useParams();
@@ -23,9 +24,12 @@ const Compiler: React.FC = () => {
   const problemId = params?.problemId as string;
 
   const { isFullScreen, activeView, isMobile } = useAppSelector(state => state.editor);
-  const { problemData, loading } = useAppSelector(state => state.problem);
+  const { problemData, loading, userSolution, hasSolved } = useAppSelector(state => state.problem);
   const { executionResult, isSubmitting } = useAppSelector(state => state.execution);
   const { testCases } = useAppSelector(state => state.problem);
+
+  // Track previous isSubmitting state to detect submission completion
+  const [prevIsSubmitting, setPrevIsSubmitting] = React.useState(false);
 
   // Initialize responsive state
   useEffect(() => {
@@ -46,12 +50,18 @@ const Compiler: React.FC = () => {
     }
   }, [contestId, problemId, dispatch]);
 
-  // Handle submission success
+  // Handle submission success - only show toast on NEW submission completion
   useEffect(() => {
-    if (isSubmitting === false && executionResult?.passed === executionResult?.total && executionResult?.total !== null) {
+    // Check if submission just completed (was submitting, now not submitting)
+    const justFinishedSubmitting = prevIsSubmitting === true && isSubmitting === false;
+    
+    if (justFinishedSubmitting && executionResult?.total !== undefined && executionResult?.total !== null && executionResult?.total > 0 && executionResult?.passed === executionResult?.total) {
       toast.success('Congratulations! Your solution has been submitted successfully.');
     }
-  }, [isSubmitting, executionResult?.passed, executionResult?.total]);
+    
+    // Update previous state
+    setPrevIsSubmitting(isSubmitting);
+  }, [isSubmitting, executionResult?.passed, executionResult?.total, prevIsSubmitting]);
 
   if (loading) {
     return (
@@ -94,6 +104,12 @@ const Compiler: React.FC = () => {
         {/* Editor Section */}
         {(!isMobile || activeView === 'ide') && (
           <div className={`p-4 ${isMobile || isFullScreen ? 'w-full' : 'w-1/2'} overflow-auto h-screen`}>
+            {userSolution && hasSolved && problemData && (
+              <PreviousSolutionBanner 
+                userSolution={userSolution} 
+                maxScore={problemData.points} 
+              />
+            )}
             <EditorToolbar contestId={contestId} problemId={problemId} />
             <SettingsModal />
             <CodeEditorComponent />

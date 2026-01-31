@@ -157,6 +157,39 @@ export const submitSolution = createAsyncThunk(
       const saveData = await saveResponse.json();
       if (!saveData.success) {
         console.error('Failed to save submission to database:', saveData.message);
+      } else {
+        console.log('✅ Solution saved successfully to database');
+        
+        // Refresh user data after successful save
+        try {
+          const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+          
+          if (token) {
+            const userResponse = await fetch('/api/user/current', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            const userData = await userResponse.json();
+            console.log('📊 Refreshed user data:', userData);
+            
+            if (userData.success && typeof window !== 'undefined') {
+              localStorage.setItem('userData', JSON.stringify(userData.data));
+              console.log('✅ Updated localStorage with new user data');
+              console.log('Rating:', userData.data.rating, 'Solved:', userData.data.solvedProblems?.length);
+              
+              // Dispatch event to notify components
+              window.dispatchEvent(new Event('userDataUpdated'));
+            } else {
+              console.error('❌ Failed to get user data:', userData.message);
+            }
+          } else {
+            console.error('❌ No token found for user data refresh');
+          }
+        } catch (error) {
+          console.error('❌ Failed to refresh user data:', error);
+        }
       }
     }
     

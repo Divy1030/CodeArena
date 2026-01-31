@@ -34,6 +34,14 @@ export interface ProblemState {
   selectedTestCase: TestCase | null;
   loading: boolean;
   error: string | null;
+  userSolution: {
+    solutionCode?: string;
+    languageUsed?: string;
+    score?: number;
+    timeOccupied?: number;
+    memoryOccupied?: number;
+  } | null;
+  hasSolved: boolean;
 }
 
 const initialState: ProblemState = {
@@ -42,6 +50,8 @@ const initialState: ProblemState = {
   selectedTestCase: null,
   loading: false,
   error: null,
+  userSolution: null,
+  hasSolved: false,
 };
 
 // Async thunk for fetching problem data
@@ -85,6 +95,13 @@ const problemSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    clearProblemData: (state) => {
+      state.problemData = null;
+      state.testCases = [];
+      state.selectedTestCase = null;
+      state.userSolution = null;
+      state.hasSolved = false;
     },
   },
   extraReducers: (builder) => {
@@ -157,6 +174,8 @@ const problemSlice = createSlice({
         };
         state.testCases = [];
         state.selectedTestCase = null;
+        state.userSolution = null;
+        state.hasSolved = false;
       });
   },
 });
@@ -166,6 +185,7 @@ export const {
   updateTestCases,
   updateTestCaseResults,
   clearError,
+  clearProblemData,
 } = problemSlice.actions;
 
 export default problemSlice.reducer;

@@ -99,7 +99,7 @@ export async function GET(
     }
 
     // Build backend URL with path params
-    const backendUrl = `${endpoints.problem.getProblemById}/${contestId}/${problemId}`;
+    const backendUrl = endpoints.problem.getProblemById(contestId, problemId);
     console.log('Calling backend URL:', backendUrl);
 
     // Make the request with better error handling

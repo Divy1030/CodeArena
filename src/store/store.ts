@@ -8,6 +8,7 @@ import socialReducer from "./socialSlice";
 import editorReducer from "./slices/editorSlice";
 import problemReducer from "./slices/problemSlice";
 import executionReducer from "./slices/executionSlice";
+import userReducer from "./slices/userSlice";
 
 const authPersistConfig = {
   key: "auth",
@@ -32,6 +33,7 @@ export const store = configureStore({
     editor: editorReducer,
     problem: problemReducer,
     execution: executionReducer,
+    user: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
