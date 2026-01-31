@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import endpoints from '@/libs/api';
+
+// Use deployed backend for code execution (requires Redis)
+const DEPLOYED_API_URL = 'https://api.code-arena.tech';
 
 interface TestCase {
   input: string;
@@ -36,8 +38,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call backend API to submit code
-    const response = await fetch(endpoints.code.submit, {
+    // Call DEPLOYED backend API to submit code (uses Redis)
+    const response = await fetch(`${DEPLOYED_API_URL}/api/v1/code/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

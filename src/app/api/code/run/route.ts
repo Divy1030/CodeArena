@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import endpoints from '@/libs/api';
+
+// Use deployed backend for code execution (requires Redis)
+const DEPLOYED_API_URL = 'https://api.code-arena.tech';
 
 // Define interfaces for type safety
 interface TestCase {
@@ -49,8 +51,8 @@ export async function POST(request: NextRequest) {
                  request.headers.get('Authorization')?.replace('Bearer ', '') ||
                  request.headers.get('authorization')?.replace('Bearer ', '');
     
-    // Call backend API to start code execution
-    const response = await fetch(endpoints.code.run, {
+    // Call DEPLOYED backend API to start code execution (uses Redis)
+    const response = await fetch(`${DEPLOYED_API_URL}/api/v1/code/run`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

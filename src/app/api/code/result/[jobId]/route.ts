@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import endpoints from '@/libs/api';
+
+// Use deployed backend for code execution (requires Redis)
+const DEPLOYED_API_URL = 'https://api.code-arena.tech';
 
 export async function GET(
   request: NextRequest,
@@ -20,8 +22,8 @@ export async function GET(
     const token = request.cookies.get('accessToken')?.value || 
                  request.headers.get('Authorization')?.replace('Bearer ', '');
 
-    // Poll result from backend
-    const response = await fetch(endpoints.code.getResult(jobId), {
+    // Poll result from DEPLOYED backend (uses Redis)
+    const response = await fetch(`${DEPLOYED_API_URL}/api/v1/code/result/${jobId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
