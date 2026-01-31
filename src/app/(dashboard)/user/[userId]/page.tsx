@@ -6,7 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { RatingHistoryChart } from '@/components/profile/charts/RatingHistoryChart';
-import { Trophy, Code, CheckCircle, TrendingUp, Calendar } from 'lucide-react';
+import { Trophy, Code, CheckCircle, TrendingUp, Calendar, Award, Star } from 'lucide-react';
+import { getRatingTier } from '@/utils/ratingUtils';
 
 interface UserProfile {
   _id: string;
@@ -21,6 +22,16 @@ interface UserProfile {
     bio?: string;
   };
   rating?: number;
+  globalRank?: number;
+  maxRating?: number;
+  ratingHistory?: {
+    contestId: string;
+    oldRating: number;
+    newRating: number;
+    ratingChange: number;
+    rank: number;
+    timestamp: string;
+  }[];
   createdAt: string;
   updatedAt?: string;
   contestsParticipated?: {
@@ -61,6 +72,12 @@ export default function UserProfilePage() {
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
+        
+        // Trigger rank recalculation in the background (non-blocking)
+        fetch('/api/contest/admin/recalculate-ranks', { method: 'POST' }).catch(err => 
+          console.log('Rank recalculation skipped:', err)
+        );
+        
         // Call the API route to fetch user profile
         const response = await fetch(`/api/user/${userId}`);
         
@@ -178,9 +195,16 @@ export default function UserProfilePage() {
                         {userProfile.role}
                       </div>
                       
-                      {userProfile.rating && (
-                        <div className="px-3 py-1 text-sm rounded-full bg-yellow-900/50 text-yellow-300 inline-block w-fit">
-                          Rating: {userProfile.rating}
+                      {userProfile.rating !== undefined && userProfile.rating > 0 && (
+                        <div 
+                          className="px-3 py-1 text-sm rounded-full inline-block w-fit font-semibold"
+                          style={{ 
+                            backgroundColor: `${getRatingTier(userProfile.rating).color}20`,
+                            color: getRatingTier(userProfile.rating).color,
+                            border: `1px solid ${getRatingTier(userProfile.rating).color}40`
+                          }}
+                        >
+                          {getRatingTier(userProfile.rating).name} • {userProfile.rating}
                         </div>
                       )}
                     </div>
@@ -219,21 +243,36 @@ export default function UserProfilePage() {
               <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Contests</p>
-                    <p className="text-3xl font-bold text-purple-500">{userProfile.contestsParticipated?.length || 0}</p>
+                    <p className="text-sm text-gray-400 mb-1">Global Rank</p>
+                    <p className="text-3xl font-bold text-purple-500">
+                      {userProfile.globalRank ? `#${userProfile.globalRank}` : 'Unranked'}
+                    </p>
                   </div>
-                  <Trophy className="w-10 h-10 text-purple-500" />
+                  <Award className="w-10 h-10 text-purple-500" />
                 </div>
               </div>
 
               <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Best Rank</p>
+                    <p className="text-sm text-gray-400 mb-1">Current Rating</p>
+                    <p 
+                      className="text-3xl font-bold"
+                      style={{ color: getRatingTier(userProfile.rating || 0).color }}
+                    >
+                      {userProfile.rating || 0}
+                    </p>
+                  </div>
+                  <Star className="w-10 h-10" style={{ color: getRatingTier(userProfile.rating || 0).color }} />
+                </div>
+              </div>
+
+              <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Max Rating</p>
                     <p className="text-3xl font-bold text-yellow-500">
-                      {userProfile.contestsParticipated && userProfile.contestsParticipated.length > 0
-                        ? `#${Math.min(...userProfile.contestsParticipated.map(c => c.rank || 999))}`
-                        : 'N/A'}
+                      {userProfile.maxRating || userProfile.rating || 0}
                     </p>
                   </div>
                   <TrendingUp className="w-10 h-10 text-yellow-500" />
@@ -243,38 +282,22 @@ export default function UserProfilePage() {
               <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Total Score</p>
+                    <p className="text-sm text-gray-400 mb-1">Contests</p>
                     <p className="text-3xl font-bold text-green-500">
-                      {userProfile.contestsParticipated && userProfile.contestsParticipated.length > 0
-                        ? userProfile.contestsParticipated.reduce((sum, c) => sum + (c.score || 0), 0)
-                        : 0}
+                      {userProfile.contestsParticipated?.length || 0}
                     </p>
                   </div>
-                  <CheckCircle className="w-10 h-10 text-green-500" />
-                </div>
-              </div>
-
-              <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Avg Score</p>
-                    <p className="text-3xl font-bold text-blue-500">
-                      {userProfile.contestsParticipated && userProfile.contestsParticipated.length > 0
-                        ? Math.round(userProfile.contestsParticipated.reduce((sum, c) => sum + (c.score || 0), 0) / userProfile.contestsParticipated.length)
-                        : 0}
-                    </p>
-                  </div>
-                  <Code className="w-10 h-10 text-blue-500" />
+                  <Trophy className="w-10 h-10 text-green-500" />
                 </div>
               </div>
             </div>
 
-            {/* Contest Performance Chart */}
-            {userProfile.contestsParticipated && userProfile.contestsParticipated.length > 0 && (
+            {/* Rating History Chart */}
+            {userProfile.ratingHistory && userProfile.ratingHistory.length > 0 && (
               <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Contest Performance</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Rating History</h3>
                 <div className="h-[250px]">
-                  <RatingHistoryChart contests={userProfile.contestsParticipated} />
+                  <RatingHistoryChart ratingHistory={userProfile.ratingHistory} />
                 </div>
               </div>
             )}

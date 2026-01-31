@@ -34,10 +34,52 @@ const AdminHome: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'live' | 'past'>('upcoming');
+  const [initializingRatings, setInitializingRatings] = useState(false);
+  const [ratingMessage, setRatingMessage] = useState('');
+
+  const handleInitializeRatings = async () => {
+    if (!confirm('This will calculate ratings for all past contests. Continue?')) {
+      return;
+    }
+
+    setInitializingRatings(true);
+    setRatingMessage('');
+
+    try {
+      const response = await fetch('/api/contest/admin/initialize-ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setRatingMessage(`Success! Processed ${data.data.contestsProcessed} contests.`);
+        // Refresh the page after a short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setRatingMessage(`Error: ${data.message}`);
+      }
+    } catch (err) {
+      console.error('Error initializing ratings:', err);
+      setRatingMessage('Failed to initialize ratings. Please try again.');
+    } finally {
+      setInitializingRatings(false);
+    }
+  };
 
   useEffect(() => {
     const fetchContests = async () => {
       try {
+        // Trigger rank recalculation in the background
+        fetch('/api/contest/admin/recalculate-ranks', { method: 'POST' }).catch(err => 
+          console.log('Rank recalculation skipped:', err)
+        );
+
         const response = await fetch('/api/contest/getAllContests');
         
         if (!response.ok) {
@@ -128,12 +170,30 @@ const AdminHome: React.FC = () => {
             <p className="text-gray-300 text-lg mb-6">
               Join competitive coding contests and improve your programming skills through real-world challenges
             </p>
-            <Link href="/contest/create">
-              <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2 px-6">
-                <Plus size={18} />
-                Create New Contest
+            <div className="flex gap-4 items-center">
+              <Link href="/contest/create">
+                <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2 px-6">
+                  <Plus size={18} />
+                  Create New Contest
+                </Button>
+              </Link>
+              <Button 
+                onClick={handleInitializeRatings}
+                disabled={initializingRatings}
+                className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2 px-6"
+              >
+                {initializingRatings ? 'Calculating...' : 'Initialize Ratings'}
               </Button>
-            </Link>
+            </div>
+            {ratingMessage && (
+              <div className={`mt-4 p-3 rounded-lg ${
+                ratingMessage.includes('Success') 
+                  ? 'bg-green-900/50 border border-green-500 text-green-200' 
+                  : 'bg-red-900/50 border border-red-500 text-red-200'
+              }`}>
+                {ratingMessage}
+              </div>
+            )}
           </div>
           <div className="relative w-[427px] h-[427px] mt-10 md:mt-0">
             <Image

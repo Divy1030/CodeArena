@@ -15,30 +15,51 @@ ChartJS.register(
 );
 
 interface RatingHistoryChartProps {
-  contests: {
+  ratingHistory?: {
     contestId: string;
+    oldRating: number;
+    newRating: number;
+    ratingChange: number;
     rank: number;
-    score: number;
-    contestName?: string;
+    timestamp: string;
   }[];
 }
 
-export const RatingHistoryChart: React.FC<RatingHistoryChartProps> = ({ contests }) => {
-  const labels = contests.map((_, index) => `Contest ${index + 1}`);
-  const scores = contests.map(c => c.score || 0);
+export const RatingHistoryChart: React.FC<RatingHistoryChartProps> = ({ ratingHistory }) => {
+  // If no rating history, show empty state
+  if (!ratingHistory || ratingHistory.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400">
+        No rating history available
+      </div>
+    );
+  }
+
+  const labels = ratingHistory.map((_, index) => `Contest ${index + 1}`);
+  const ratings = ratingHistory.map(r => r.newRating);
+  
+  // Create point colors based on rating change
+  const pointColors = ratingHistory.map(r => {
+    if (r.ratingChange > 0) return 'rgb(34, 197, 94)'; // green
+    if (r.ratingChange < 0) return 'rgb(239, 68, 68)'; // red
+    return 'rgb(156, 163, 175)'; // gray
+  });
 
   const data = {
     labels,
     datasets: [
       {
-        label: 'Score',
-        data: scores,
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        label: 'Rating',
+        data: ratings,
+        borderColor: 'rgb(147, 51, 234)', // purple
+        backgroundColor: 'rgba(147, 51, 234, 0.1)',
         tension: 0.4,
         fill: true,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointBackgroundColor: pointColors,
+        pointBorderColor: pointColors,
+        pointBorderWidth: 2,
       }
     ],
   };
@@ -48,7 +69,7 @@ export const RatingHistoryChart: React.FC<RatingHistoryChartProps> = ({ contests
     maintainAspectRatio: false,
     scales: {
       y: {
-        beginAtZero: true,
+        beginAtZero: false,
         grid: {
           color: 'rgba(255, 255, 255, 0.1)',
         },
@@ -73,8 +94,17 @@ export const RatingHistoryChart: React.FC<RatingHistoryChartProps> = ({ contests
         bodyColor: '#fff',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         callbacks: {
+          title: function(context: any) {
+            return `Contest ${context[0].dataIndex + 1}`;
+          },
           label: function(context: any) {
-            return `Score: ${context.parsed.y}`;
+            const index = context.dataIndex;
+            const entry = ratingHistory[index];
+            return [
+              `Rating: ${entry.newRating}`,
+              `Change: ${entry.ratingChange >= 0 ? '+' : ''}${entry.ratingChange}`,
+              `Rank: #${entry.rank}`
+            ];
           }
         }
       }
