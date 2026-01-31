@@ -1,50 +1,51 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import endpoints from '@/libs/api';
+import { toast } from 'react-hot-toast';
 
-// Problem interface based on the API response
-interface TestCase {
-  input: string;
-  output: string;
-  explanation: string;
+// Contest interface
+interface Contest {
   _id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  problems: Problem[];
 }
 
+// Problem interface
 interface Problem {
   _id: string;
   title: string;
-  statement: string;
-  inputFormat: string;
-  outputFormat: string;
-  constraints: string;
-  sampleInput: string;
-  sampleOutput: string;
-  explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  createdBy: string;
   tags: string[];
-  testCases: TestCase[];
+  maxScore: number;
   timeLimit: number;
   memoryLimit: number;
-  maxScore: number;
-  isSolved: boolean;
   createdAt: string;
-  updatedAt: string;
+}
+
+// Extended problem with contest info and solved status
+interface ExtendedProblem extends Problem {
+  contestId: string;
+  contestTitle: string;
+  isSolved: boolean;
 }
 
 type DifficultyFilter = 'all' | 'easy' | 'medium' | 'hard';
+type TimeFilter = 'all' | 'week' | 'month';
 type StatusFilter = 'all' | 'solved' | 'unsolved';
 
 const ProblemsPage: React.FC = () => {
   const router = useRouter();
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const [problems, setProblems] = useState<ExtendedProblem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [solvedProblems, setSolvedProblems] = useState<string[]>([]);
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>('all');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showTagsDropdown, setShowTagsDropdown] = useState<boolean>(false);
@@ -53,7 +54,7 @@ const ProblemsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const problemsPerPage = 20;
 
-  // Fetch all problems
+  // Fetch problems from past contests only
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -65,7 +66,19 @@ const ProblemsPage: React.FC = () => {
           return;
         }
 
-        const response = await fetch(endpoints.problem.getAllProblems, {
+        // Get user data for solved problems
+        const userDataStr = localStorage.getItem('userData');
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          // Extract problemIds from solvedProblems array (which contains objects with problemId field)
+          const solvedIds = (userData.solvedProblems || []).map((sp: any) => 
+            typeof sp === 'string' ? sp : (sp.problemId || sp._id)
+          );
+          setSolvedProblems(solvedIds);
+        }
+
+        // Fetch all contests
+        const response = await fetch('/api/contest/getAllContests', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -76,13 +89,38 @@ const ProblemsPage: React.FC = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch problems');
+          throw new Error(data.message || 'Failed to fetch contests');
         }
 
-        setProblems(data.data || []);
+        const contests = data.data || [];
+        const now = new Date();
+        
+        // Filter to only past contests (endTime < now)
+        const pastContests = contests.filter((contest: Contest) => {
+          const endTime = new Date(contest.endTime);
+          return endTime < now;
+        });
+
+        // Extract problems from past contests
+        const allProblems: ExtendedProblem[] = [];
+        pastContests.forEach((contest: Contest) => {
+          if (contest.problems && Array.isArray(contest.problems)) {
+            contest.problems.forEach((problem: Problem) => {
+              allProblems.push({
+                ...problem,
+                contestId: contest._id,
+                contestTitle: contest.title,
+                isSolved: false, // Will be updated below
+              });
+            });
+          }
+        });
+
+        setProblems(allProblems);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'An error occurred';
         setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -90,6 +128,24 @@ const ProblemsPage: React.FC = () => {
 
     fetchProblems();
   }, [router]);
+
+  // Listen for userDataUpdated event to update solved problems
+  useEffect(() => {
+    const handleUserDataUpdate = () => {
+      const userDataStr = localStorage.getItem('userData');
+      if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        // Extract problemIds from solvedProblems array
+        const solvedIds = (userData.solvedProblems || []).map((sp: any) => 
+          typeof sp === 'string' ? sp : (sp.problemId || sp._id)
+        );
+        setSolvedProblems(solvedIds);
+      }
+    };
+
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+    return () => window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+  }, []);
 
   // Get all unique tags from problems
   const allTags = useMemo(() => {
@@ -102,26 +158,60 @@ const ProblemsPage: React.FC = () => {
 
   // Filter problems based on all criteria
   const filteredProblems = useMemo(() => {
-    return problems.filter(problem => {
-      // Search filter
-      const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        problem.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    let filtered = problems.map(problem => ({
+      ...problem,
+      isSolved: solvedProblems.includes(problem._id),
+    }));
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(problem => {
+        return problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          problem.contestTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          problem.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      });
+    }
+    
+    // Difficulty filter
+    if (difficultyFilter !== 'all') {
+      filtered = filtered.filter(problem => problem.difficulty === difficultyFilter);
+    }
+
+    // Time filter (week/month)
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      const cutoffDate = new Date();
       
-      // Difficulty filter
-      const matchesDifficulty = difficultyFilter === 'all' || problem.difficulty === difficultyFilter;
+      if (timeFilter === 'week') {
+        cutoffDate.setDate(now.getDate() - 7);
+      } else if (timeFilter === 'month') {
+        cutoffDate.setMonth(now.getMonth() - 1);
+      }
       
-      // Status filter
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'solved' && problem.isSolved) ||
-        (statusFilter === 'unsolved' && !problem.isSolved);
-      
-      // Tags filter
-      const matchesTags = selectedTags.length === 0 || 
-        selectedTags.every(tag => problem.tags?.includes(tag));
-      
-      return matchesSearch && matchesDifficulty && matchesStatus && matchesTags;
-    });
-  }, [problems, searchQuery, difficultyFilter, statusFilter, selectedTags]);
+      filtered = filtered.filter(problem => {
+        const createdAt = new Date(problem.createdAt);
+        return createdAt >= cutoffDate;
+      });
+    }
+    
+    // Status filter (solved/unsolved)
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(problem => {
+        if (statusFilter === 'solved') return problem.isSolved;
+        if (statusFilter === 'unsolved') return !problem.isSolved;
+        return true;
+      });
+    }
+    
+    // Tags filter
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(problem => 
+        selectedTags.every(tag => problem.tags?.includes(tag))
+      );
+    }
+    
+    return filtered;
+  }, [problems, searchQuery, difficultyFilter, timeFilter, statusFilter, selectedTags, solvedProblems]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProblems.length / problemsPerPage);
@@ -133,7 +223,7 @@ const ProblemsPage: React.FC = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, difficultyFilter, statusFilter, selectedTags]);
+  }, [searchQuery, difficultyFilter, timeFilter, statusFilter, selectedTags]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -169,13 +259,16 @@ const ProblemsPage: React.FC = () => {
     );
   };
 
-  const handleProblemClick = (problemId: string) => {
-    router.push(`/problems/${problemId}`);
+  const handleProblemClick = (contestId: string, problemId: string, isSolved: boolean) => {
+    // Always navigate to standalone practice mode editor
+    // It will load the previous solution if the problem is already solved
+    router.push(`/problems/solve/${contestId}/${problemId}`);
   };
 
   const clearAllFilters = () => {
     setSearchQuery('');
     setDifficultyFilter('all');
+    setTimeFilter('all');
     setStatusFilter('all');
     setSelectedTags([]);
   };
@@ -210,10 +303,22 @@ const ProblemsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#121B38]">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 text-sm mb-2">
+          <button 
+            onClick={() => router.push('/user/home')}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            Home
+          </button>
+          <span className="text-gray-600">/</span>
+          <span className="text-white">Problems</span>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Problems</h1>
-          <p className="text-gray-400">Practice coding problems to improve your skills</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Practice Problems</h1>
+          <p className="text-gray-400">Solve problems from past contests to improve your skills and rating</p>
         </div>
 
         {/* Filters Section */}
@@ -232,7 +337,7 @@ const ProblemsPage: React.FC = () => {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search problems or tags..."
+                  placeholder="Search problems, contests, or tags..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
@@ -251,6 +356,19 @@ const ProblemsPage: React.FC = () => {
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
+              </select>
+            </div>
+
+            {/* Time Filter */}
+            <div>
+              <select
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
+                className="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Time</option>
+                <option value="week">Past Week</option>
+                <option value="month">Past Month</option>
               </select>
             </div>
 
@@ -306,7 +424,7 @@ const ProblemsPage: React.FC = () => {
             </div>
 
             {/* Clear Filters */}
-            {(searchQuery || difficultyFilter !== 'all' || statusFilter !== 'all' || selectedTags.length > 0) && (
+            {(searchQuery || difficultyFilter !== 'all' || timeFilter !== 'all' || statusFilter !== 'all' || selectedTags.length > 0) && (
               <button
                 onClick={clearAllFilters}
                 className="text-gray-400 hover:text-white text-sm underline"
@@ -341,11 +459,16 @@ const ProblemsPage: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="text-gray-400">
             Showing {paginatedProblems.length} of {filteredProblems.length} problems
+            {filteredProblems.length > 0 && (
+              <span className="ml-2 text-green-400">
+                ({filteredProblems.filter(p => p.isSolved).length} solved)
+              </span>
+            )}
           </div>
           <div className="flex gap-4 text-sm">
-            <span className="text-green-500">Easy: {problems.filter(p => p.difficulty === 'easy').length}</span>
-            <span className="text-yellow-500">Medium: {problems.filter(p => p.difficulty === 'medium').length}</span>
-            <span className="text-red-500">Hard: {problems.filter(p => p.difficulty === 'hard').length}</span>
+            <span className="text-green-500">Easy: {filteredProblems.filter(p => p.difficulty === 'easy').length}</span>
+            <span className="text-yellow-500">Medium: {filteredProblems.filter(p => p.difficulty === 'medium').length}</span>
+            <span className="text-red-500">Hard: {filteredProblems.filter(p => p.difficulty === 'hard').length}</span>
           </div>
         </div>
 
@@ -354,42 +477,62 @@ const ProblemsPage: React.FC = () => {
           {/* Table Header */}
           <div className="grid grid-cols-12 bg-gray-700 p-4 text-gray-300 font-medium text-sm">
             <div className="col-span-1 text-center">Status</div>
-            <div className="col-span-5">Title</div>
+            <div className="col-span-4">Title</div>
+            <div className="col-span-2">Contest</div>
             <div className="col-span-2">Tags</div>
             <div className="col-span-1 text-center">Difficulty</div>
-            <div className="col-span-1 text-center">Max Score</div>
-            <div className="col-span-1 text-center">Time Limit</div>
-            <div className="col-span-1 text-center">Memory</div>
+            <div className="col-span-2 text-center">Action</div>
           </div>
 
           {/* Problems List */}
           <div className="divide-y divide-gray-700">
             {paginatedProblems.length === 0 ? (
               <div className="p-8 text-center text-gray-400">
-                No problems found matching your criteria
+                {problems.length === 0 ? (
+                  <>
+                    <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p>No past contest problems available yet.</p>
+                    <p className="text-sm mt-2">Problems will appear here after contests end.</p>
+                  </>
+                ) : (
+                  'No problems found matching your criteria'
+                )}
               </div>
             ) : (
               paginatedProblems.map((problem, index) => (
                 <div
-                  key={problem._id}
-                  onClick={() => handleProblemClick(problem._id)}
-                  className="grid grid-cols-12 p-4 items-center hover:bg-gray-700/50 cursor-pointer transition-colors"
+                  key={`${problem.contestId}-${problem._id}`}
+                  className="grid grid-cols-12 p-4 items-center hover:bg-gray-700/50 transition-colors"
                 >
                   {/* Status */}
                   <div className="col-span-1 text-center">
                     {problem.isSolved ? (
-                      <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                      <div className="flex items-center justify-center">
+                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
                     ) : (
                       <div className="w-5 h-5 border-2 border-gray-500 rounded-full mx-auto" />
                     )}
                   </div>
 
                   {/* Title */}
-                  <div className="col-span-5">
+                  <div className="col-span-4">
                     <span className="text-gray-500 mr-2">{(currentPage - 1) * problemsPerPage + index + 1}.</span>
-                    <span className="text-white hover:text-blue-400">{problem.title}</span>
+                    <span className="text-white">{problem.title}</span>
+                    {problem.isSolved && (
+                      <span className="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">
+                        Solved
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Contest */}
+                  <div className="col-span-2">
+                    <span className="text-gray-400 text-sm">{problem.contestTitle}</span>
                   </div>
 
                   {/* Tags */}
@@ -416,19 +559,18 @@ const ProblemsPage: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Max Score */}
-                  <div className="col-span-1 text-center text-gray-300">
-                    {problem.maxScore || '-'}
-                  </div>
-
-                  {/* Time Limit */}
-                  <div className="col-span-1 text-center text-gray-300">
-                    {problem.timeLimit}s
-                  </div>
-
-                  {/* Memory Limit */}
-                  <div className="col-span-1 text-center text-gray-300">
-                    {problem.memoryLimit} MB
+                  {/* Action */}
+                  <div className="col-span-2 text-center">
+                    <button
+                      onClick={() => handleProblemClick(problem.contestId, problem._id, problem.isSolved)}
+                      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        problem.isSolved
+                          ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    >
+                      {problem.isSolved ? 'View Solution' : 'Solve Problem'}
+                    </button>
                   </div>
                 </div>
               ))

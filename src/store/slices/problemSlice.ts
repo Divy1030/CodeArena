@@ -134,6 +134,15 @@ const problemSlice = createSlice({
             followUp: p.followUp || ""
           };
           
+          // Handle user's previous solution if it exists
+          if (p.userSolution) {
+            state.userSolution = p.userSolution;
+            state.hasSolved = p.userSolution.score >= (p.maxScore || 0);
+          } else {
+            state.userSolution = null;
+            state.hasSolved = false;
+          }
+          
           if (testCasesArr.length > 0) {
             const formattedTestCases: TestCase[] = testCasesArr.map((tc: any, idx: number) => ({
               id: idx + 1,
@@ -157,6 +166,8 @@ const problemSlice = createSlice({
           };
           state.testCases = [];
           state.selectedTestCase = null;
+          state.userSolution = null;
+          state.hasSolved = false;
         }
       })
       .addCase(fetchProblem.rejected, (state, action) => {

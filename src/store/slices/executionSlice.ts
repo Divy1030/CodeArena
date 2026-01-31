@@ -139,8 +139,8 @@ export const submitSolution = createAsyncThunk(
     // Step 2: Poll for result
     const result = await pollForResult(jobId);
     
-    // Step 3: Save to database via problem controller (only for contest problems)
-    if (result.status === 'completed' && !isStandalone && contestId) {
+    // Step 3: Save to database via problem controller
+    if (result.status === 'completed' && contestId) {
       const saveResponse = await fetch(`/api/problem/submit-solution/${contestId}/${problemId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
