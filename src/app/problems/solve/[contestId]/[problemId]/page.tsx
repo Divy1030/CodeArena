@@ -30,6 +30,14 @@ export default function SolveProblemPage() {
   // Track previous isSubmitting state to detect submission completion
   const [prevIsSubmitting, setPrevIsSubmitting] = React.useState(false);
   const [isSolved, setIsSolved] = React.useState(false);
+  const [fromSource, setFromSource] = React.useState<string | null>(null);
+
+  // Check navigation source from sessionStorage
+  useEffect(() => {
+    const source = sessionStorage.getItem('practiceModeSource');
+    setFromSource(source);
+    console.log('🔍 Navigation source from sessionStorage:', source);
+  }, []);
 
   // Check if problem is solved by checking user's solvedProblems array
   const checkIfSolved = React.useCallback(() => {
@@ -139,16 +147,23 @@ export default function SolveProblemPage() {
       <div className="bg-[#0f172a] border-b border-gray-700 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => router.push('/problems')}
-              className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Problems
-            </button>
-            <span className="text-gray-600">|</span>
+            {fromSource !== 'profile' && (
+              <>
+                <button 
+                  onClick={() => {
+                    sessionStorage.removeItem('practiceModeSource');
+                    router.push('/problems');
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Back to Problems
+                </button>
+                <span className="text-gray-600">|</span>
+              </>
+            )}
             <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-sm rounded-full border border-blue-500/30">
               Practice Mode
             </span>

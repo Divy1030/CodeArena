@@ -236,7 +236,7 @@ const UserHome: React.FC = () => {
                   ⚔️ Duel Arena
                 </Button>
               </Link>
-              <Link href="/practice">
+              <Link href="/problems">
                 <Button className="bg-transparent border border-blue-500 text-blue-500 hover:bg-blue-900/20">
                   Practice Problems
                 </Button>
