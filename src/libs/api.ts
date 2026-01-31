@@ -22,6 +22,7 @@ const endpoints = {
     getAdminInfo: `${API_BASE_URL}/api/v1/admin/get-admin`,
   },
   contest: {
+    base: `${API_BASE_URL}/api/v1/contest`,
     createContest: `${API_BASE_URL}/api/v1/contest/create-contest`,
     getAllContests: `${API_BASE_URL}/api/v1/contest/getAllContests`,
     joinContest: `${API_BASE_URL}/api/v1/contest/join-contest`,
