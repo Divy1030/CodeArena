@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Eye, CheckCircle, XCircle, Clock, Search, Filter } from 'lucide-react';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 import { toast } from 'react-hot-toast';
@@ -48,6 +48,12 @@ export default function AllSubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [showModal, setShowModal] = useState(false);
+  
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [languageFilter, setLanguageFilter] = useState<string>('all');
+  const [problemFilter, setProblemFilter] = useState<string>('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,12 +68,13 @@ export default function AllSubmissionsPage() {
           setContest(contestData.data);
         }
         
-        // Fetch all submissions for this contest
-        const submissionsRes = await fetch(`/api/contest/user-submissions/${contestId}`);
+        // Fetch all submissions from all users
+        const submissionsRes = await fetch(`/api/contest/all-submissions/${contestId}`);
         const submissionsData = await submissionsRes.json();
         
         if (submissionsData.success) {
           setSubmissions(submissionsData.data || []);
+          console.log('📋 Loaded submissions:', submissionsData.data?.length || 0);
         } else {
           toast.error('Failed to load submissions');
         }
@@ -136,6 +143,31 @@ export default function AllSubmissionsPage() {
     setShowModal(true);
   };
 
+  // Get unique values for filters
+  const uniqueLanguages = Array.from(new Set(submissions.map(s => s.languageUsed).filter(Boolean)));
+  const uniqueProblems = Array.from(new Set(submissions.map(s => s.problemId?.title).filter(Boolean)));
+  const uniqueStatuses = Array.from(new Set(submissions.map(s => s.status).filter(Boolean)));
+
+  // Filter submissions
+  const filteredSubmissions = submissions.filter(submission => {
+    // Search filter (problem title or username)
+    const username = submission.userId?.username || 'Unknown User';
+    const matchesSearch = searchTerm === '' || 
+      submission.problemId?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      username.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || submission.status === statusFilter;
+    
+    // Language filter
+    const matchesLanguage = languageFilter === 'all' || submission.languageUsed === languageFilter;
+    
+    // Problem filter
+    const matchesProblem = problemFilter === 'all' || submission.problemId?.title === problemFilter;
+    
+    return matchesSearch && matchesStatus && matchesLanguage && matchesProblem;
+  });
+
   return (
     <>
       <Navbar />
@@ -157,14 +189,91 @@ export default function AllSubmissionsPage() {
             <p className="text-gray-400">View all submissions made in this contest</p>
           </div>
 
+          {/* Filters */}
+          <div className="bg-[#121B38] border border-gray-700 rounded-lg p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Filter className="w-5 h-5 text-blue-400" />
+              <h2 className="text-lg font-semibold text-white">Filters</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Search */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Problem or user..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Statuses</option>
+                  {uniqueStatuses.map(status => (
+                    <option key={status} value={status}>{formatStatus(status)}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Language Filter */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Language</label>
+                <select
+                  value={languageFilter}
+                  onChange={(e) => setLanguageFilter(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Languages</option>
+                  {uniqueLanguages.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Problem Filter */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Problem</label>
+                <select
+                  value={problemFilter}
+                  onChange={(e) => setProblemFilter(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Problems</option>
+                  {uniqueProblems.map(problem => (
+                    <option key={problem} value={problem}>{problem}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Results count */}
+            <div className="mt-4 text-sm text-gray-400">
+              Showing {filteredSubmissions.length} of {submissions.length} submissions
+            </div>
+          </div>
+
           {/* Submissions Table */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-          ) : submissions.length === 0 ? (
+          ) : filteredSubmissions.length === 0 ? (
             <div className="bg-[#121B38] border border-gray-700 rounded-lg p-12 text-center">
-              <p className="text-gray-400 text-lg">No submissions yet</p>
+              <p className="text-gray-400 text-lg">
+                {submissions.length === 0 ? 'No submissions yet' : 'No submissions match the filters'}
+              </p>
             </div>
           ) : (
             <div className="bg-[#121B38] border border-gray-700 rounded-lg overflow-hidden">
@@ -199,15 +308,19 @@ export default function AllSubmissionsPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-[#121B38] divide-y divide-gray-700">
-                    {submissions.map((submission) => (
-                      <tr key={submission._id} className="hover:bg-[#1a2540]">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="text-sm font-medium text-white">
-                              {submission.userId?.username || 'Unknown User'}
+                    {filteredSubmissions.map((submission) => {
+                      // Get username from submission's userId field
+                      const displayUsername = submission.userId?.username || 'Unknown User';
+                      
+                      return (
+                        <tr key={submission._id} className="hover:bg-[#1a2540]">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="text-sm font-medium text-white">
+                                {displayUsername}
+                              </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-300">
                             {submission.problemId?.title || 'Unknown Problem'}
@@ -248,7 +361,8 @@ export default function AllSubmissionsPage() {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -266,7 +380,7 @@ export default function AllSubmissionsPage() {
               <div>
                 <h2 className="text-xl font-bold text-white">Submission Details</h2>
                 <p className="text-sm text-gray-400 mt-1">
-                  {selectedSubmission.userId?.username} - {selectedSubmission.problemId?.title}
+                  {selectedSubmission.userId?.username || 'Unknown User'} - {selectedSubmission.problemId?.title}
                 </p>
               </div>
               <button
