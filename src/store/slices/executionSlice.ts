@@ -173,6 +173,13 @@ export const submitSolution = createAsyncThunk(
             
             const userData = await userResponse.json();
             console.log('📊 Refreshed user data:', userData);
+            console.log('📋 User data details:', {
+              rating: userData.data?.rating,
+              solvedProblemsLength: userData.data?.solvedProblems?.length,
+              solvedProblems: userData.data?.solvedProblems,
+              hasRating: 'rating' in (userData.data || {}),
+              hasSolvedProblems: 'solvedProblems' in (userData.data || {})
+            });
             
             if (userData.success && typeof window !== 'undefined') {
               localStorage.setItem('userData', JSON.stringify(userData.data));
@@ -180,7 +187,9 @@ export const submitSolution = createAsyncThunk(
               console.log('Rating:', userData.data.rating, 'Solved:', userData.data.solvedProblems?.length);
               
               // Dispatch event to notify components
+              console.log('🔔 Dispatching userDataUpdated event');
               window.dispatchEvent(new Event('userDataUpdated'));
+              console.log('✅ Event dispatched');
             } else {
               console.error('❌ Failed to get user data:', userData.message);
             }

@@ -51,8 +51,8 @@ const Navbar: React.FC<NavbarProps> = ({
 
     // Listen for user data updates
     const handleUserDataUpdate = () => {
-      console.log('\ud83d\udd14 Navbar received userDataUpdated event');
-      loadUserData();
+      console.log('\ud83d\udd14 Navbar received userDataUpdated event');      const storedData = localStorage.getItem('userData');
+      console.log('📦 Navbar loading user data from localStorage:', storedData ? 'exists' : 'missing');      loadUserData();
     };
 
     window.addEventListener('userDataUpdated', handleUserDataUpdate);
