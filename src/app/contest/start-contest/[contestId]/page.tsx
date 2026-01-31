@@ -60,6 +60,34 @@ const StartContestPage = () => {
   const [error, setError] = useState("");
   const [contest, setContest] = useState<ContestData | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
+  const [solvedProblems, setSolvedProblems] = useState<Set<string>>(new Set());
+
+  // Fetch user's solved problems for this contest
+  const fetchUserProgress = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("userData");
+      
+      if (userData && token) {
+        const user = JSON.parse(userData);
+        const contestEntry = user.contestsParticipated?.find(
+          (c: any) => c._id === contestId || c.contestId === contestId
+        );
+        
+        if (contestEntry?.contestProblems) {
+          const solved = new Set<string>();
+          contestEntry.contestProblems.forEach((cp: any) => {
+            if (cp.submissionStatus === "correct") {
+              solved.add(cp.problemId._id || cp.problemId);
+            }
+          });
+          setSolvedProblems(solved);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching user progress:", err);
+    }
+  };
 
   useEffect(() => {
     const startContest = async () => {
@@ -75,6 +103,8 @@ const StartContestPage = () => {
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           console.log("Contest data received:", data.data[0]);
           setContest(data.data[0]);
+          // Fetch user progress after loading contest
+          await fetchUserProgress();
         } else {
           setError(data.message || "Failed to start contest.");
           toast.error("Failed to load contest details");
@@ -89,6 +119,22 @@ const StartContestPage = () => {
     };
     if (contestId) startContest();
   }, [contestId]);
+
+  // Listen for problem solved events
+  useEffect(() => {
+    const handleProblemSolved = () => {
+      console.log('\ud83d\udd14 userDataUpdated event received in challenges page');
+      console.log('Current solved problems before refresh:', solvedProblems);
+      fetchUserProgress();
+    };
+
+    console.log('\ud83c\udfaf Setting up userDataUpdated listener for challenges page');
+    window.addEventListener('userDataUpdated', handleProblemSolved);
+    return () => {
+      console.log('\ud83e\uddf9 Cleaning up userDataUpdated listener');
+      window.removeEventListener('userDataUpdated', handleProblemSolved);
+    };
+  }, [contestId, solvedProblems]);
 
   // Timer for time left till contest end
   useEffect(() => {
@@ -194,11 +240,11 @@ const StartContestPage = () => {
                 <table className="w-full">
                   <thead className="bg-[#121B38] text-gray-300">
                     <tr>
-                      <th className="py-4 px-4 text-left font-medium">Title</th>
-                      <th className="py-4 px-4 text-left font-medium">Difficulty</th>
-                      <th className="py-4 px-4 text-left font-medium">Tags</th>
-                      <th className="py-4 px-4 text-left font-medium">Time/Memory</th>
-                      <th className="py-4 px-4 text-right font-medium">Action</th>
+                      <th className="py-4 px-4 text-left font-medium w-1/4">Title</th>
+                      <th className="py-4 px-4 text-left font-medium w-1/6">Difficulty</th>
+                      <th className="py-4 px-4 text-left font-medium w-1/4">Tags</th>
+                      <th className="py-4 px-4 text-left font-medium w-1/6">Time/Memory</th>
+                      <th className="py-4 px-4 text-right font-medium w-1/6">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -234,13 +280,32 @@ const StartContestPage = () => {
                         <td className="py-4 px-4 text-gray-400">
                           {problem.timeLimit || 1}ms / {problem.memoryLimit || 256}MB
                         </td>
-                        <td className="py-4 px-4 text-right">
-                          <button
-                            onClick={() => router.push(`/contest/editor/${contestId}/${problem._id}`)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded font-medium transition-colors"
-                          >
-                            Solve Challenge
-                          </button>
+                        <td className="py-4 px-4">
+                          {solvedProblems.has(problem._id) ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="bg-green-600 text-white px-3 py-1.5 text-sm rounded font-medium inline-flex items-center gap-1.5">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Solved
+                              </span>
+                              <button
+                                onClick={() => router.push(`/contest/editor/${contestId}/${problem._id}`)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 text-sm rounded font-medium transition-colors whitespace-nowrap"
+                              >
+                                View Solution
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => router.push(`/contest/editor/${contestId}/${problem._id}`)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 text-sm rounded font-medium transition-colors whitespace-nowrap"
+                              >
+                                Solve Challenge
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -269,7 +334,7 @@ const StartContestPage = () => {
                     <span>Current Leaderboard</span>
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link 
                     href={`/contest/${contestId}/progress`} 
                     className="flex items-center gap-2 text-blue-400 hover:text-blue-300"
@@ -277,7 +342,7 @@ const StartContestPage = () => {
                     <BarChart2 size={18} />
                     <span>Compare Progress</span>
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link 
                     href={`/contest/${contestId}/submissions`} 
